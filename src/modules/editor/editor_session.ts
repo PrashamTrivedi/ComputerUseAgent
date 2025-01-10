@@ -1,15 +1,18 @@
 import {BaseSession} from "../../utils/session.ts"
-import {EDITOR_SYSTEM_PROMPT, API_CONFIG} from "../../config/constants.ts"
-import {ToolCall, ToolResult} from "../../types/interfaces.ts"
+import {EDITOR_SYSTEM_PROMPT, API_CONFIG, MEMORY_TOOLS} from "../../config/constants.ts"
+import {ToolResult} from "../../types/interfaces.ts"
 import {log} from "../../config/logging.ts"
 import {EditorHandlers} from "./handlers.ts"
+import {MemoryManager} from "../memory/memory_manager.ts"
 
 export class EditorSession extends BaseSession {
     private handlers: EditorHandlers
+    private memoryManager: MemoryManager
 
     constructor(sessionId?: string) {
         super(sessionId)
         this.handlers = new EditorHandlers()
+        this.memoryManager = new MemoryManager()
     }
 
     async processEdit(prompt: string): Promise<void> {
@@ -20,14 +23,17 @@ export class EditorSession extends BaseSession {
             }
             this.messages = [message]
 
-            log.info(`User input: ${JSON.stringify(message)}, System Prompt: ${EDITOR_SYSTEM_PROMPT}`)
+            log.info(`User input: ${JSON.stringify(message)}`)
 
             while (true) {
                 const response = await this.client.beta.messages.create({
                     model: API_CONFIG.MODEL,
                     max_tokens: API_CONFIG.MAX_TOKENS,
                     messages: this.messages,
-                    tools: [{type: "text_editor_20241022", name: "str_replace_editor"}],
+                    tools: [
+                        {type: "text_editor_20241022", name: "str_replace_editor"},
+                        ...MEMORY_TOOLS
+                    ],
                     system: EDITOR_SYSTEM_PROMPT,
                     betas: ["computer-use-2024-10-22"],
                 })
@@ -77,20 +83,35 @@ export class EditorSession extends BaseSession {
         const results: ToolResult[] = []
 
         for (const toolCall of content) {
-            if (toolCall.type === "tool_use" && toolCall.name === "str_replace_editor") {
-                log.info(`Editor tool call input: ${JSON.stringify(toolCall.input)}`)
+            if (toolCall.type === "tool_use") {
+                let result
+                let isError = false
 
-                const result = await this.handlers.handleTextEditorTool(toolCall.input)
-                const isError = "error" in result
-                const toolResultContent = isError
-                    ? [{type: "text", text: result.error}]
-                    : [{type: "text", text: result.content || ""}]
+                switch (toolCall.name) {
+                    case "str_replace_editor":
+                        result = await this.handlers.handleTextEditorTool(toolCall.input)
+                        isError = "error" in result
+                        break
+                    case "add_memory":
+                        result = await this.memoryManager.addMemory(toolCall.input.content)
+                        break
+                    case "get_memories":
+                        result = await this.memoryManager.getMemories()
+                        break
+                    case "clear_memories":
+                        await this.memoryManager.clearMemories()
+                        result = {message: "Memories cleared successfully"}
+                        break
+                }
 
                 results.push({
                     tool_call_id: toolCall.id,
                     output: {
                         type: "tool_result",
-                        content: toolResultContent,
+                        content: [{
+                            type: "text",
+                            text: JSON.stringify(result)
+                        }],
                         tool_use_id: toolCall.id,
                         is_error: isError,
                     },

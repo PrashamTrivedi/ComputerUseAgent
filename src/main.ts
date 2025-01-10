@@ -18,7 +18,7 @@ async function determineIntent(prompt: string): Promise<string> {
 
   const message = await client.messages.create({
     model: API_CONFIG.INTENT_MODEL,
-    max_tokens: 10,
+    max_tokens: API_CONFIG.MAX_INTENT_TOKENS,
     system: `You have following query from user, determine what is the intent of user. 
      and based on user's intent and available tools, pick the best tool that can help user.
      

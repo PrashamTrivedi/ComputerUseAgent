@@ -28,3 +28,13 @@ export interface SystemInfo {
   isWsl: boolean;
   shell: string;
 }
+
+export interface Memory {
+  id: string;
+  content: string;
+  timestamp: number;
+}
+
+export interface MemoryFile {
+  memories: Memory[];
+}
