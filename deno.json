@@ -1,0 +1,10 @@
+{
+  "tasks": {
+    "dev": "deno run --watch src/main.ts",
+    "build": "deno compile --output build/  --allow-env --allow-run --allow-net --allow-read --allow-write src/main.ts",
+    "buildLocal": "deno compile --output build/ComputerUseAgent -A src/main.ts"
+  },
+  "imports": {
+    "@std/assert": "jsr:@std/assert@1"
+  }
+}

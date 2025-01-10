@@ -1,0 +1,579 @@
+INFO User input: {"role":"user","content":[{"type":"text","text":"This is a directory of multiple deno scripts, read first 40 lines of each ts files and then write their usecase in a JSON file in reports directory, then based on that json file, write another report called organisind_deno_scripts.md in same reports directory."}]}
+INFO Bash tool call input: {"command":"mkdir -p reports && find . -name \"*.ts\" -type f"}
+INFO Executing bash command: mkdir -p reports && find . -name "*.ts" -type f
+INFO Command output:
+
+```output for 'mkdir -p reports && ...'
+./src/utils/session.ts
+./src/modules/bash/bash_session.ts
+./src/modules/bash/handlers.ts
+./src/modules/editor/editor_session.ts
+./src/modules/editor/handlers.ts
+./src/types/interfaces.ts
+./src/main.ts
+./src/config/constants.ts
+./src/config/logging.ts
+./computerUse.ts
+```
+INFO Bash tool call input: {"command":"for file in $(find . -name \"*.ts\" -type f); do\n  echo \"=== $file ====\"\n  head -n 40 \"$file\"\n  echo -e \"\\n\\n\"\ndone"}
+INFO Executing bash command: for file in $(find . -name "*.ts" -type f); do
+  echo "=== $file ===="
+  head -n 40 "$file"
+  echo -e "\n\n"
+done
+INFO Command output:
+
+```output for 'for file in $(find ....'
+=== ./src/utils/session.ts ====
+import { Anthropic } from "npm:@anthropic-ai/sdk";
+import { format } from "jsr:@std/datetime";
+import { crypto } from "jsr:@std/crypto";
+import { log } from "../config/logging.ts";
+
+export class SessionLogger {
+  private sessionId: string;
+  private totalInputTokens = 0;
+  private totalOutputTokens = 0;
+  private logger: log.Logger;
+
+  constructor(sessionId: string) {
+    this.sessionId = sessionId;
+    this.logger = log.getLogger();
+  }
+
+  updateTokenUsage(inputTokens: number, outputTokens: number): void {
+    this.totalInputTokens += inputTokens;
+    this.totalOutputTokens += outputTokens;
+  }
+
+  logTotalCost(): void {
+    const costPerMillionInputTokens = 3.0;
+    const costPerMillionOutputTokens = 15.0;
+
+    const totalInputCost = (this.totalInputTokens / 1_000_000) *
+      costPerMillionInputTokens;
+    const totalOutputCost = (this.totalOutputTokens / 1_000_000) *
+      costPerMillionOutputTokens;
+    const totalCost = totalInputCost + totalOutputCost;
+
+    this.logger.info(`Session ${this.sessionId} costs:
+      Input tokens: ${this.totalInputTokens}
+      Output tokens: ${this.totalOutputTokens}
+      Input cost: $${totalInputCost.toFixed(6)}
+      Output cost: $${totalOutputCost.toFixed(6)}
+      Total cost: $${totalCost.toFixed(6)}`);
+  }
+}
+
+
+
+
+=== ./src/modules/bash/bash_session.ts ====
+import {BaseSession} from "../../utils/session.ts"
+import {BASH_SYSTEM_PROMPT, API_CONFIG} from "../../config/constants.ts"
+import {ToolResult} from "../../types/interfaces.ts"
+import {log} from "../../config/logging.ts"
+import {BashHandlers} from "./handlers.ts"
+
+export class BashSession extends BaseSession {
+    private noAgi: boolean
+    private environment: Record<string, string>
+    private handlers: BashHandlers
+
+    constructor(sessionId?: string, noAgi = false) {
+        super(sessionId)
+        this.noAgi = noAgi
+        this.environment = {...Deno.env.toObject()}
+        this.handlers = new BashHandlers(noAgi)
+    }
+
+    async processBashCommand(bashPrompt: string): Promise<void> {
+        try {
+            const systemInfo = {
+                os: Deno.build.os,
+                arch: Deno.build.arch,
+                isWsl: Deno.env.get("WSL_DISTRO_NAME") !== undefined,
+                shell: Deno.env.get("SHELL") || "Unknown",
+            }
+
+            const systemContext = BASH_SYSTEM_PROMPT + `
+<SystemInfo>
+System Context:
+- Operating System: ${systemInfo.os}
+- Architecture: ${systemInfo.arch}
+- Shell: ${systemInfo.shell}
+- WSL: ${systemInfo.isWsl ? "Yes" : "No"}
+- Current Directory: ${Deno.cwd()}
+</SystemInfo>
+`
+
+            const apiMessage = {
+                role: "user",
+
+
+
+=== ./src/modules/bash/handlers.ts ====
+import {log} from "../../config/logging.ts"
+
+export class BashHandlers {
+    private noAgi: boolean
+    private environment: Record<string, string>
+
+    constructor(noAgi = false) {
+        this.noAgi = noAgi
+        this.environment = {...Deno.env.toObject()}
+    }
+
+    async handleBashCommand(
+        toolCall: Record<string, any>,
+    ): Promise<Record<string, any>> {
+        try {
+            const command = toolCall.command
+            const restart = toolCall.restart ?? false
+
+            if (restart) {
+                this.environment = {...Deno.env.toObject()}
+                log.info("Bash session restarted.")
+                return {content: "Bash session restarted."}
+            }
+
+            if (!command) {
+                log.error("No command provided to execute.")
+                return {error: "No command provided to execute."}
+            }
+
+            if (this.noAgi) {
+                log.info(`Mock executing bash command: ${command}`)
+                return {content: "in mock mode, command did not run"}
+            }
+
+            log.info(`Executing bash command: ${command}`)
+
+            const process = new Deno.Command("bash", {
+                args: ["-c", command],
+                env: this.environment,
+                stdout: "piped",
+
+
+
+=== ./src/modules/editor/editor_session.ts ====
+import {BaseSession} from "../../utils/session.ts"
+import {EDITOR_SYSTEM_PROMPT, API_CONFIG} from "../../config/constants.ts"
+import {ToolCall, ToolResult} from "../../types/interfaces.ts"
+import {log} from "../../config/logging.ts"
+import {EditorHandlers} from "./handlers.ts"
+
+export class EditorSession extends BaseSession {
+    private handlers: EditorHandlers
+
+    constructor(sessionId?: string) {
+        super(sessionId)
+        this.handlers = new EditorHandlers()
+    }
+
+    async processEdit(prompt: string): Promise<void> {
+        try {
+            const message = {
+                role: "user",
+                content: [{type: "text", text: prompt}],
+            }
+            this.messages = [message]
+
+            log.info(`User input: ${JSON.stringify(message)}`)
+
+            while (true) {
+                const response = await this.client.beta.messages.create({
+                    model: API_CONFIG.MODEL,
+                    max_tokens: API_CONFIG.MAX_TOKENS,
+                    messages: this.messages,
+                    tools: [{type: "text_editor_20241022", name: "str_replace_editor"}],
+                    system: EDITOR_SYSTEM_PROMPT,
+                    betas: ["computer-use-2024-10-22"],
+                })
+
+                const inputTokens = response.usage?.input_tokens ?? 0
+                const outputTokens = response.usage?.output_tokens ?? 0
+                log.info(`API usage: input_tokens=${inputTokens}, output_tokens=${outputTokens}`)
+                this.logger.updateTokenUsage(inputTokens, outputTokens)
+
+                const responseContent = response.content.map((block) =>
+
+
+
+=== ./src/modules/editor/handlers.ts ====
+import { ensureFileSync } from "jsr:@std/fs";
+import { log } from "../../config/logging.ts";
+import { ToolCall } from "../../types/interfaces.ts";
+
+export class EditorHandlers {
+  async handleView(path: string): Promise<Record<string, string>> {
+    try {
+      const content = await Deno.readTextFile(path);
+      return { content };
+    } catch (error) {
+      log.error(`Error viewing file: ${error}`);
+      return { error: `File ${path} does not exist` };
+    }
+  }
+
+  async handleCreate(
+    path: string,
+    toolCall: ToolCall["input"],
+  ): Promise<Record<string, string>> {
+    try {
+      ensureFileSync(path);
+      await Deno.writeTextFile(path, toolCall.file_text || "");
+      return { content: `File created at ${path}` };
+    } catch (error) {
+      log.error(`Error creating file: ${error}`);
+      return { error: String(error) };
+    }
+  }
+
+  async handleStrReplace(
+    path: string,
+    toolCall: ToolCall["input"],
+  ): Promise<Record<string, string>> {
+    try {
+      const content = await Deno.readTextFile(path);
+      if (!toolCall.old_str || !content.includes(toolCall.old_str)) {
+        return { error: "old_str not found in file" };
+      }
+      const newContent = content.replace(
+        toolCall.old_str,
+
+
+
+=== ./src/types/interfaces.ts ====
+export interface ToolCall {
+  type: string;
+  name: string;
+  id: string;
+  input: {
+    command: string;
+    path: string;
+    file_text?: string;
+    old_str?: string;
+    new_str?: string;
+    insert_line?: number;
+  };
+}
+
+export interface ToolResult {
+  tool_call_id: string;
+  output: {
+    type: string;
+    content: Array<{ type: string; text: string }>;
+    tool_use_id: string;
+    is_error: boolean;
+  };
+}
+
+export interface SystemInfo {
+  os: string;
+  arch: string;
+  isWsl: boolean;
+  shell: string;
+}
+
+
+
+=== ./src/main.ts ====
+#!/usr/bin/env -S deno run -A
+
+import {parseArgs} from "jsr:@std/cli/parse-args"
+import {ensureDir} from "jsr:@std/fs"
+import {format} from "jsr:@std/datetime"
+import {crypto} from "jsr:@std/crypto"
+import {Anthropic} from "npm:@anthropic-ai/sdk"
+
+import {setupLogging, log} from "./config/logging.ts"
+import {EDITOR_DIR, SESSIONS_DIR, API_CONFIG} from "./config/constants.ts"
+import {EditorSession} from "./modules/editor/editor_session.ts"
+import {BashSession} from "./modules/bash/bash_session.ts"
+
+async function determineIntent(prompt: string): Promise<string> {
+  const client = new Anthropic({
+    apiKey: Deno.env.get("ANTHROPIC_API_KEY") ?? "",
+  })
+
+  const message = await client.messages.create({
+    model: API_CONFIG.INTENT_MODEL,
+    max_tokens: 10,
+    system: `You have following query from user, determine what is the intent of user. 
+     and based on user's intent and available tools, pick the best tool that can help user.
+     
+     <AvailableTools>
+     bash
+     editor
+     </AvailableTools>
+     Instruction,
+     - Only use the tools mentioned in <AvailableTools> tag.
+     - If user's intent is not clear, respond with editor.
+     Only respond with the tool name, avoid yapping.`,
+    messages: [{
+      role: "user",
+      content: prompt,
+    }],
+  })
+
+  return message.content.find((block) => block.type === "text")?.text ?? "editor"
+
+
+
+
+=== ./src/config/constants.ts ====
+import {join} from "jsr:@std/path"
+
+export const EDITOR_DIR = join(Deno.cwd(), "editor_dir")
+export const SESSIONS_DIR = join(Deno.cwd(), "sessions")
+
+export const EDITOR_SYSTEM_PROMPT = Deno.env.get("EDITOR_SYSTEM_PROMPT") ??
+    `You are a helpful assistant that helps users edit and work text files.
+        You have the access of full file system, and you are currently in ${Deno.cwd()} directory.
+        Some rules for you to take care of
+        - All the paths you provide should be related to current directory.
+        - If user asks you to work with current directory or file from current directory, you can use '.' or './' as prefix.`
+
+export const BASH_SYSTEM_PROMPT = `
+You are a helpful assistant that can execute shell command.
+You operate in the environment mentioned in <SystemInfo> tag.
+Please ensure all commands are compatible with this environment.
+`
+
+export const API_CONFIG = {
+    MODEL: "claude-3-5-sonnet-20241022",
+    INTENT_MODEL: "claude-3-5-haiku-20241022",
+    MAX_TOKENS: 4096,
+}
+
+
+
+=== ./src/config/logging.ts ====
+import * as log from "jsr:@std/log";
+
+export async function setupLogging() {
+  await log.setup({
+    handlers: {
+      console: new log.ConsoleHandler("DEBUG"),
+      file: new log.FileHandler("DEBUG", {
+        filename: "./app.log",
+      }),
+    },
+    loggers: {
+      default: {
+        level: "DEBUG",
+        handlers: ["console", "file"],
+      },
+    },
+  });
+}
+
+export { log };
+
+
+
+=== ./computerUse.ts ====
+#!/usr/bin/env -S deno run -A
+
+// This script provides functionality similar to the Python script for interacting with Anthropic's Claude API
+// It supports both text editor and bash command execution modes with comprehensive logging and session management
+//
+// Required permissions:
+// --allow-net: For API calls to Anthropic
+// --allow-read: For file operations
+// --allow-write: For logging and file editing
+// --allow-env: For environment variables
+//
+// Usage:
+// 1. Set ANTHROPIC_API_KEY environment variable
+// 2. Run in editor mode: deno run script.ts --mode=editor "your prompt"
+// 3. Run in bash mode: deno run script.ts --mode=bash "your command"
+// 4. Use --no-agi flag in bash mode to simulate without executing commands
+
+import { Anthropic } from "npm:@anthropic-ai/sdk";
+import { parseArgs } from "jsr:@std/cli/parse-args";
+import { ensureDir, ensureFileSync } from "jsr:@std/fs";
+import { join } from "jsr:@std/path";
+import { format } from "jsr:@std/datetime";
+import { crypto } from "jsr:@std/crypto";
+
+import * as log from "jsr:@std/log";
+
+// Directory setup
+const EDITOR_DIR = join(Deno.cwd(), "editor_dir");
+const SESSIONS_DIR = join(Deno.cwd(), "sessions");
+
+const EDITOR_SYSTEM_PROMPT = Deno.env.get("EDITOR_SYSTEM_PROMPT") ??
+  "You are a helpful assistant that helps users edit text files.";
+
+// Configure logging
+await log.setup({
+  handlers: {
+    console: new log.ConsoleHandler("DEBUG"),
+    file: new log.FileHandler("DEBUG", {
+      filename: "./app.log",
+    }),
+```
+INFO Bash tool call input: {"command":"cat > reports/deno_scripts_analysis.json << 'EOF'\n{\n  \"src/utils/session.ts\": {\n    \"purpose\": \"Handles session logging and token usage tracking for API calls, including cost calculations\",\n    \"main_features\": [\"Session ID management\", \"Token usage tracking\", \"Cost calculation for API usage\"]\n  },\n  \"src/modules/bash/bash_session.ts\": {\n    \"purpose\": \"Manages bash command execution sessions with API integration\",\n    \"main_features\": [\"System information collection\", \"Environment management\", \"Bash command processing\"]\n  },\n  \"src/modules/bash/handlers.ts\": {\n    \"purpose\": \"Handles the execution of bash commands with safety features\",\n    \"main_features\": [\"Command execution\", \"Environment management\", \"Mock execution mode\"]\n  },\n  \"src/modules/editor/editor_session.ts\": {\n    \"purpose\": \"Manages text editor sessions with API integration\",\n    \"main_features\": [\"Text editing operations\", \"API communication\", \"Token usage tracking\"]\n  },\n  \"src/modules/editor/handlers.ts\": {\n    \"purpose\": \"Handles file operations for the editor module\",\n    \"main_features\": [\"File viewing\", \"File creation\", \"String replacement in files\"]\n  },\n  \"src/types/interfaces.ts\": {\n    \"purpose\": \"Defines TypeScript interfaces for the application\",\n    \"main_features\": [\"Tool call interfaces\", \"Tool result interfaces\", \"System information interfaces\"]\n  },\n  \"src/main.ts\": {\n    \"purpose\": \"Main application entry point with intent determination\",\n    \"main_features\": [\"Command line argument parsing\", \"Intent determination\", \"Session management\"]\n  },\n  \"src/config/constants.ts\": {\n    \"purpose\": \"Defines application-wide constants and configuration\",\n    \"main_features\": [\"Directory paths\", \"System prompts\", \"API configuration\"]\n  },\n  \"src/config/logging.ts\": {\n    \"purpose\": \"Sets up and configures application logging\",\n    \"main_features\": [\"Log setup\", \"Console logging\", \"File logging\"]\n  },\n  \"computerUse.ts\": {\n    \"purpose\": \"Main script for interacting with Anthropic's Claude API\",\n    \"main_features\": [\"Editor mode\", \"Bash mode\", \"Session management\", \"Logging setup\"]\n  }\n}\nEOF"}
+INFO Executing bash command: cat > reports/deno_scripts_analysis.json << 'EOF'
+{
+  "src/utils/session.ts": {
+    "purpose": "Handles session logging and token usage tracking for API calls, including cost calculations",
+    "main_features": ["Session ID management", "Token usage tracking", "Cost calculation for API usage"]
+  },
+  "src/modules/bash/bash_session.ts": {
+    "purpose": "Manages bash command execution sessions with API integration",
+    "main_features": ["System information collection", "Environment management", "Bash command processing"]
+  },
+  "src/modules/bash/handlers.ts": {
+    "purpose": "Handles the execution of bash commands with safety features",
+    "main_features": ["Command execution", "Environment management", "Mock execution mode"]
+  },
+  "src/modules/editor/editor_session.ts": {
+    "purpose": "Manages text editor sessions with API integration",
+    "main_features": ["Text editing operations", "API communication", "Token usage tracking"]
+  },
+  "src/modules/editor/handlers.ts": {
+    "purpose": "Handles file operations for the editor module",
+    "main_features": ["File viewing", "File creation", "String replacement in files"]
+  },
+  "src/types/interfaces.ts": {
+    "purpose": "Defines TypeScript interfaces for the application",
+    "main_features": ["Tool call interfaces", "Tool result interfaces", "System information interfaces"]
+  },
+  "src/main.ts": {
+    "purpose": "Main application entry point with intent determination",
+    "main_features": ["Command line argument parsing", "Intent determination", "Session management"]
+  },
+  "src/config/constants.ts": {
+    "purpose": "Defines application-wide constants and configuration",
+    "main_features": ["Directory paths", "System prompts", "API configuration"]
+  },
+  "src/config/logging.ts": {
+    "purpose": "Sets up and configures application logging",
+    "main_features": ["Log setup", "Console logging", "File logging"]
+  },
+  "computerUse.ts": {
+    "purpose": "Main script for interacting with Anthropic's Claude API",
+    "main_features": ["Editor mode", "Bash mode", "Session management", "Logging setup"]
+  }
+}
+EOF
+INFO Bash tool call input: {"command":"cat > reports/organizing_deno_scripts.md << 'EOF'\n# Deno Scripts Organization Report\n\nThis report provides an overview of the Deno scripts in the project, organized by their purpose and functionality.\n\n## Core Components\n\n### Main Application Scripts\n\n1. **computerUse.ts**\n   - Primary entry point for interacting with Anthropic's Claude API\n   - Supports both editor and bash command execution modes\n   - Features comprehensive logging and session management\n\n2. **src/main.ts**\n   - Application bootstrapper\n   - Handles intent determination\n   - Manages command-line argument parsing\n   - Coordinates between different session types\n\n## Modules\n\n### Bash Module\nLocated in `src/modules/bash/`\n\n1. **bash_session.ts**\n   - Manages bash command execution sessions\n   - Handles system information collection\n   - Maintains environment variables\n\n2. **handlers.ts**\n   - Executes bash commands safely\n   - Provides mock execution mode for testing\n   - Manages command environment\n\n### Editor Module\nLocated in `src/modules/editor/`\n\n1. **editor_session.ts**\n   - Manages text editing sessions\n   - Integrates with API for text operations\n   - Tracks token usage\n\n2. **handlers.ts**\n   - Handles file operations\n   - Supports viewing, creation, and text replacement\n   - Manages file system interactions\n\n## Utilities and Configuration\n\n### Utilities\nLocated in `src/utils/`\n\n1. **session.ts**\n   - Manages session logging\n   - Tracks API token usage\n   - Calculates costs for API usage\n\n### Configuration\nLocated in `src/config/`\n\n1. **constants.ts**\n   - Defines system-wide constants\n   - Configures API settings\n   - Sets up system prompts\n\n2. **logging.ts**\n   - Configures application logging\n   - Sets up console and file logging handlers\n\n### Type Definitions\nLocated in `src/types/`\n\n1. **interfaces.ts**\n   - Defines TypeScript interfaces\n   - Structures tool calls and results\n   - Defines system information types\n\n## Architecture Overview\n\nThe application follows a modular architecture with clear separation of concerns:\n\n1. **Core Layer**: Main application scripts handling the primary flow\n2. **Module Layer**: Specialized modules for bash and editor functionality\n3. **Utility Layer**: Supporting utilities for sessions and logging\n4. **Configuration Layer**: System-wide settings and constants\n5. **Type Definitions**: TypeScript interfaces for type safety\n\n## Key Features\n\n1. **Dual Mode Operation**\n   - Editor mode for text file manipulation\n   - Bash mode for command execution\n\n2. **Comprehensive Logging**\n   - Console and file logging\n   - Session tracking\n   - Token usage monitoring\n\n3. **Safety Features**\n   - Mock execution mode\n   - Environment isolation\n   - Error handling\n\n4. **API Integration**\n   - Anthropic Claude API integration\n   - Token usage tracking\n   - Cost calculation\n\nEOF"}
+INFO Executing bash command: cat > reports/organizing_deno_scripts.md << 'EOF'
+# Deno Scripts Organization Report
+
+This report provides an overview of the Deno scripts in the project, organized by their purpose and functionality.
+
+## Core Components
+
+### Main Application Scripts
+
+1. **computerUse.ts**
+   - Primary entry point for interacting with Anthropic's Claude API
+   - Supports both editor and bash command execution modes
+   - Features comprehensive logging and session management
+
+2. **src/main.ts**
+   - Application bootstrapper
+   - Handles intent determination
+   - Manages command-line argument parsing
+   - Coordinates between different session types
+
+## Modules
+
+### Bash Module
+Located in `src/modules/bash/`
+
+1. **bash_session.ts**
+   - Manages bash command execution sessions
+   - Handles system information collection
+   - Maintains environment variables
+
+2. **handlers.ts**
+   - Executes bash commands safely
+   - Provides mock execution mode for testing
+   - Manages command environment
+
+### Editor Module
+Located in `src/modules/editor/`
+
+1. **editor_session.ts**
+   - Manages text editing sessions
+   - Integrates with API for text operations
+   - Tracks token usage
+
+2. **handlers.ts**
+   - Handles file operations
+   - Supports viewing, creation, and text replacement
+   - Manages file system interactions
+
+## Utilities and Configuration
+
+### Utilities
+Located in `src/utils/`
+
+1. **session.ts**
+   - Manages session logging
+   - Tracks API token usage
+   - Calculates costs for API usage
+
+### Configuration
+Located in `src/config/`
+
+1. **constants.ts**
+   - Defines system-wide constants
+   - Configures API settings
+   - Sets up system prompts
+
+2. **logging.ts**
+   - Configures application logging
+   - Sets up console and file logging handlers
+
+### Type Definitions
+Located in `src/types/`
+
+1. **interfaces.ts**
+   - Defines TypeScript interfaces
+   - Structures tool calls and results
+   - Defines system information types
+
+## Architecture Overview
+
+The application follows a modular architecture with clear separation of concerns:
+
+1. **Core Layer**: Main application scripts handling the primary flow
+2. **Module Layer**: Specialized modules for bash and editor functionality
+3. **Utility Layer**: Supporting utilities for sessions and logging
+4. **Configuration Layer**: System-wide settings and constants
+5. **Type Definitions**: TypeScript interfaces for type safety
+
+## Key Features
+
+1. **Dual Mode Operation**
+   - Editor mode for text file manipulation
+   - Bash mode for command execution
+
+2. **Comprehensive Logging**
+   - Console and file logging
+   - Session tracking
+   - Token usage monitoring
+
+3. **Safety Features**
+   - Mock execution mode
+   - Environment isolation
+   - Error handling
+
+4. **API Integration**
+   - Anthropic Claude API integration
+   - Token usage tracking
+   - Cost calculation
+
+EOF
+INFO Session 20250110-190934-c26e48 costs:
+      Input tokens: 18693
+      Output tokens: 1824
+      Input cost: $0.056079
+      Output cost: $0.027360
+      Total cost: $0.083439
