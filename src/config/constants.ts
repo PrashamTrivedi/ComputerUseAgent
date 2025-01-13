@@ -4,6 +4,7 @@ import {homedir} from "node:os"
 
 export const EDITOR_DIR = join(homedir(), ".ComputerUseAgent", "editor_dir")
 export const SESSIONS_DIR = join(homedir(), ".ComputerUseAgent", "sessions")
+export const LOGS_DIR = join(homedir(), ".ComputerUseAgent", "logs")
 
 export const EDITOR_SYSTEM_PROMPT = Deno.env.get("EDITOR_SYSTEM_PROMPT") ??
     `You are a helpful assistant that helps users edit and work with text files.

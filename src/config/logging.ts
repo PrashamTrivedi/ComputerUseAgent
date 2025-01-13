@@ -1,11 +1,12 @@
-import * as log from "jsr:@std/log";
+import * as log from "jsr:@std/log"
+import {LOGS_DIR} from "./constants.ts"
 
 export async function setupLogging() {
   await log.setup({
     handlers: {
       console: new log.ConsoleHandler("DEBUG"),
       file: new log.FileHandler("DEBUG", {
-        filename: "./app.log",
+        filename: `${LOGS_DIR}/log.txt`,
       }),
     },
     loggers: {
@@ -14,7 +15,7 @@ export async function setupLogging() {
         handlers: ["console", "file"],
       },
     },
-  });
+  })
 }
 
-export { log };
+export {log}

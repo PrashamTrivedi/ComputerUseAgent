@@ -13,7 +13,7 @@ export class BashHandlers {
         toolCall: Record<string, any>,
     ): Promise<Record<string, any>> {
         try {
-            const command = toolCall.command
+            const command = toolCall.command as string
             const restart = toolCall.restart ?? false
 
             if (restart) {
@@ -34,25 +34,26 @@ export class BashHandlers {
 
             log.info(`Executing bash command: ${command}`)
 
-            const process = new Deno.Command("bash", {
+            const shell = Deno.env.get("SHELL") || "bash"
+            const process = new Deno.Command(shell, {
                 args: ["-c", command],
                 env: this.environment,
                 stdout: "piped",
                 stderr: "piped",
             })
-
             const {stdout, stderr, code} = await process.output()
 
             const output = new TextDecoder().decode(stdout).trim()
             const errorOutput = new TextDecoder().decode(stderr).trim()
 
-            if (output) {
-                log.info(
-                    `Command output:\n\n\`\`\`output for '${command.slice(0, 20)
-                    }...'\n${output}\n\`\`\``,
-                )
-            }
-            if (errorOutput) {
+            if (code === 0) {
+                if (output) {
+                    log.info(
+                        `Command output:\n\n\`\`\`output for '${command.slice(0, 20)
+                        }...'\n${output}\n\`\`\``,
+                    )
+                }
+            } else if (errorOutput) {
                 log.error(
                     `Command error output:\n\n\`\`\`error for '${command}'\n${errorOutput}\n\`\`\``,
                 )
