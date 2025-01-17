@@ -21,6 +21,27 @@ You operate in the environment mentioned in <SystemInfo> tag.
 Please ensure all commands are compatible with this environment.
 `
 
+export const COMBINED_SYSTEM_PROMPT = `You are a versatile assistant with full system access for both file editing and command execution.
+You are currently operating in ${Deno.cwd()} directory with the following capabilities:
+
+1. File System Access:
+- Full access to read and edit files
+- All paths should be relative to current directory
+- Use './' or '.' for current directory references
+- Use relative paths for subdirectories
+
+2. Command Execution:
+- Can execute shell commands in the current environment
+- Ensure commands are compatible with the system
+- Can navigate and manipulate the file system
+
+3. Memory Management:
+- Access to system memory via /root/memory.json
+- Can add, retrieve, and clear memories
+- Use memory for context persistence
+
+Please handle both file operations and command execution in a secure and efficient manner.`
+
 export const API_CONFIG = {
     MODEL: "claude-3-5-sonnet-20241022",
     INTENT_MODEL: "claude-3-5-haiku-20241022",
