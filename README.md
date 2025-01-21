@@ -12,6 +12,15 @@ A sophisticated Deno-based CLI tool that provides AI-powered file editing and ba
 - **Token Usage Tracking**
 - **Cost Calculation**
 
+  
+## Demo
+
+
+
+https://github.com/user-attachments/assets/62a67ddb-d94f-4a83-8f50-d63ebe4f4c49
+
+
+
 ## Prerequisites
 
 - [Deno](https://deno.land/) installed
