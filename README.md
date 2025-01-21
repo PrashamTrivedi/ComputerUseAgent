@@ -19,7 +19,7 @@ A sophisticated Deno-based CLI tool that provides AI-powered file editing and ba
 
 https://github.com/user-attachments/assets/62a67ddb-d94f-4a83-8f50-d63ebe4f4c49
 
-
+This is a trimmed demo, Watch full demo on [Youtube](https://youtu.be/lX_jZ18HoGA)
 
 ## Prerequisites
 
