@@ -59,6 +59,9 @@ You have access to following tools and capabilities:
     - Arguments: none
     - Name: "clear_memories"
     - Arguments: none
+- CLIPBOARD_TOOLS:
+    - Name: "read_clipboard"
+    - Arguments: none
 
 Before taking any action, follow these steps:
 
@@ -101,7 +104,7 @@ export const API_CONFIG = {
     MAX_INTENT_TOKENS: 20,
 }
 
-export const MEMORY_TOOLS: Anthropic.Beta.BetaToolUnion[] = [
+export const MEMORY_TOOLS: Anthropic.Beta.BetaTool[] = [
     {
         name: "add_memory",
         description: "Add a new memory to the system",
@@ -135,4 +138,13 @@ export const MEMORY_TOOLS: Anthropic.Beta.BetaToolUnion[] = [
             properties: {},
         },
     },
+]
+export const CLIPBOARD_TOOLS: Anthropic.Beta.BetaTool[] = [
+    {
+        type: "custom",
+        name: "read_clipboard",
+        description: "Read content from system clipboard",
+        input_schema: {type: "object", properties: {}, required: []}
+
+    }
 ]
