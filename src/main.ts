@@ -24,10 +24,9 @@ async function main() {
   })
 
   const prompt = flags._.join(" ")
-  const sessionId = `${format(new Date(), "yyyyMMdd-HHmmss")}-${crypto.randomUUID().slice(0, 6)
-    }`
+  const sessionId = `${format(new Date(), "yyyyMMdd-HHmmss")}-${crypto.randomUUID().slice(0, 6)}`
 
-  const mode = flags.mode || (flags.mode !== "beta" ? await determineIntent(prompt) : "beta")
+  const mode = flags.mode
   log.debug(`Mode selected: ${mode}`)
 
   if (mode === "editor") {
@@ -36,12 +35,10 @@ async function main() {
   } else if (mode === "bash") {
     const session = new BashSession(sessionId, flags["no-agi"])
     await session.processBashCommand(prompt)
-  } else if (mode === "beta") {
+  } else {
+    // Default to hybrid mode for any other mode value
     const session = new HybridSession(sessionId, flags["no-agi"])
     await session.process(prompt)
-  } else {
-    console.error("Invalid mode specified")
-    Deno.exit(1)
   }
 }
 
