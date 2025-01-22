@@ -77,11 +77,13 @@ export class HybridSession extends BaseSession {
             }
 
             this.logger.logTotalCost()
+            await this.logInteraction('hybrid', prompt, "passed")
         } catch (error) {
             log.error(`Error in hybrid process: ${error instanceof Error ? error.message : String(error)}`)
             if (error instanceof Error && error.stack) {
                 log.error(error.stack)
             }
+            await this.logInteraction('hybrid', prompt, `${error}`)
             throw error
         }
     }

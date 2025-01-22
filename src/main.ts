@@ -11,6 +11,7 @@ import {EditorSession} from "./modules/editor/editor_session.ts"
 import {BashSession} from "./modules/bash/bash_session.ts"
 import {HybridSession} from "./modules/hybrid/hybrid_session.ts"
 import {determineIntent} from "./utils/intent.ts"
+import {handleHistory} from "./commands/history.ts"
 
 async function main() {
   await setupLogging()
@@ -28,6 +29,11 @@ async function main() {
 
   const mode = flags.mode
   log.debug(`Mode selected: ${mode}`)
+
+  if (flags._[0] === "history") {
+    await handleHistory(flags._.map(arg => String(arg)))
+    return
+  }
 
   if (mode === "editor") {
     const session = new EditorSession(sessionId)
