@@ -38,3 +38,13 @@ export interface Memory {
 export interface MemoryFile {
   memories: Memory[];
 }
+
+export interface UserSettings {
+  userName: string;
+  customCommands: {
+    name: string;
+    description: string;
+    helpCommand?: string;
+    helpFlags?: string[];
+  }[];
+}

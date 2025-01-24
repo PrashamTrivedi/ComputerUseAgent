@@ -3,6 +3,7 @@ import {format} from "jsr:@std/datetime"
 import {crypto} from "jsr:@std/crypto"
 import {log} from "../config/logging.ts"
 import {PromptDatabase} from "../modules/db/database.ts"
+import { getSystemContext } from "../config/constants.ts";
 
 export class SessionLogger {
   private sessionId: string
@@ -90,5 +91,9 @@ export class BaseSession {
       tokens_used: totalTokens,
       cost: totalCost
     })
+  }
+
+  protected async getSystemPrompt(basePrompt: string): Promise<string> {
+    return await getSystemContext(basePrompt);
   }
 }

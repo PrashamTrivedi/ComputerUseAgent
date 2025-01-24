@@ -12,6 +12,7 @@ import {BashSession} from "./modules/bash/bash_session.ts"
 import {HybridSession} from "./modules/hybrid/hybrid_session.ts"
 import {determineIntent} from "./utils/intent.ts"
 import {handleHistory} from "./commands/history.ts"
+import { handleSettings } from "./commands/settings.ts"
 
 async function main() {
   await setupLogging()
@@ -33,6 +34,11 @@ async function main() {
   if (flags._[0] === "history") {
     await handleHistory(flags._.map(arg => String(arg)))
     return
+  }
+
+  if (flags._[0] === "settings") {
+    await handleSettings(flags._.slice(1));
+    return;
   }
 
   if (mode === "editor") {

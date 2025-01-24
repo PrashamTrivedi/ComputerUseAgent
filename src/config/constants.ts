@@ -1,6 +1,7 @@
 import {join} from "jsr:@std/path"
 import Anthropic from "npm:@anthropic-ai/sdk"
 import {homedir} from "node:os"
+import { loadUserSettings } from "./settings.ts";
 
 export const EDITOR_DIR = join(homedir(), ".ComputerUseAgent", "editor_dir")
 export const SESSIONS_DIR = join(homedir(), ".ComputerUseAgent", "sessions")
@@ -148,3 +149,19 @@ export const CLIPBOARD_TOOLS: Anthropic.Beta.BetaTool[] = [
 
     }
 ]
+
+export async function getSystemContext(basePrompt: string): Promise<string> {
+    const settings = await loadUserSettings();
+    const customCommandsContext = settings.customCommands.length > 0 
+        ? "\nCustom Commands:\n" + settings.customCommands
+            .map(cmd => `- ${cmd.name}: ${cmd.description}${
+                cmd.helpCommand ? `\n  Help: ${cmd.helpCommand}` : ''
+            }${
+                cmd.helpFlags ? `\n  Flags: ${cmd.helpFlags.join(', ')}` : ''
+            }`).join('\n')
+        : '';
+
+    return `${basePrompt}
+User Context:
+- Name: ${settings.userName}${customCommandsContext}`;
+}
