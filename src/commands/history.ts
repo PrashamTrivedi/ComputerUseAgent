@@ -14,6 +14,7 @@ export async function handleHistory(args: string[]) {
     try {
         if (flags.view) {
             const id = parseInt(flags.view)
+            log.debug(`Viewing entry with ID ${id}`)
             if (isNaN(id)) {
                 console.error("Invalid ID provided")
                 return
