@@ -3,7 +3,7 @@ import {format} from "jsr:@std/datetime"
 import {crypto} from "jsr:@std/crypto"
 import {log} from "../config/logging.ts"
 import {PromptDatabase} from "../modules/db/database.ts"
-import { getSystemContext } from "../config/constants.ts";
+import {getSystemContext} from "../config/constants.ts"
 
 export class SessionLogger {
   private sessionId: string
@@ -30,7 +30,7 @@ export class SessionLogger {
     const totalOutputCost = (this.totalOutputTokens / 1_000_000) *
       costPerMillionOutputTokens
     const totalCost = totalInputCost + totalOutputCost
-    
+
     this.logger.info(`Session ${this.sessionId} costs:
       Input tokens: ${this.totalInputTokens}
       Output tokens: ${this.totalOutputTokens}
@@ -93,7 +93,7 @@ export class BaseSession {
     })
   }
 
-  protected async getSystemPrompt(basePrompt: string): Promise<string> {
-    return await getSystemContext(basePrompt);
+  protected getSystemPrompt(basePrompt: string): string {
+    return getSystemContext(basePrompt)
   }
 }

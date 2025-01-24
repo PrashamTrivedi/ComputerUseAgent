@@ -1,23 +1,23 @@
-import { join } from "jsr:@std/path";
-import { homedir } from "node:os";
-import { UserSettings } from "../types/interfaces.ts";
+import {join} from "jsr:@std/path"
+import {homedir} from "node:os"
+import {UserSettings} from "../types/interfaces.ts"
 
 const DEFAULT_SETTINGS: UserSettings = {
     userName: "User",
     customCommands: []
-};
+}
 
-const SETTINGS_PATH = join(homedir(), ".ComputerUseAgent", "settings.json");
+const SETTINGS_PATH = join(homedir(), ".ComputerUseAgent", "settings.json")
 
-export async function loadUserSettings(): Promise<UserSettings> {
+export function loadUserSettings(): UserSettings {
     try {
-        const content = await Deno.readTextFile(SETTINGS_PATH);
-        return { ...DEFAULT_SETTINGS, ...JSON.parse(content) };
+        const content = Deno.readTextFileSync(SETTINGS_PATH)
+        return {...DEFAULT_SETTINGS, ...JSON.parse(content)}
     } catch {
-        return DEFAULT_SETTINGS;
+        return DEFAULT_SETTINGS
     }
 }
 
-export async function saveUserSettings(settings: UserSettings): Promise<void> {
-    await Deno.writeTextFile(SETTINGS_PATH, JSON.stringify(settings, null, 2));
+export function saveUserSettings(settings: UserSettings) {
+    Deno.writeTextFileSync(SETTINGS_PATH, JSON.stringify(settings, null, 2))
 }

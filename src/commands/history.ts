@@ -2,14 +2,20 @@ import {parseArgs} from "jsr:@std/cli/parse-args"
 import {PromptDatabase, type PromptEntry} from "../modules/db/database.ts"
 import {HistoryViewer} from "../modules/cli/history_viewer.ts"
 import {log} from "../config/logging.ts"
+import {parseFlagForHelp} from "../utils/functions.ts"
 
 export async function handleHistory(args: string[]) {
 
     const db = new PromptDatabase()
-    const flags = parseArgs(args, {
+    const commandFlags = {
         string: ["view", "limit"],
         default: {limit: "10"},
-    })
+    }
+    const flags = parseArgs(args, commandFlags)
+    if (flags._[1] === 'help') {
+        console.log(parseFlagForHelp(commandFlags))
+        return
+    }
 
     try {
         if (flags.view) {

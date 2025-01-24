@@ -1,14 +1,14 @@
-import { BaseSession } from "../../utils/session.ts";
-import { BASH_SYSTEM_PROMPT, API_CONFIG, MEMORY_TOOLS } from "../../config/constants.ts";
-import { log } from "../../config/logging.ts";
-import { ToolHandler } from "../../utils/tool_handler.ts";
+import {BaseSession} from "../../utils/session.ts"
+import {BASH_SYSTEM_PROMPT, API_CONFIG, MEMORY_TOOLS} from "../../config/constants.ts"
+import {log} from "../../config/logging.ts"
+import {ToolHandler} from "../../utils/tool_handler.ts"
 
 export class BashSession extends BaseSession {
-    private toolHandler: ToolHandler;
+    private toolHandler: ToolHandler
 
     constructor(sessionId?: string, noAgi = false) {
-        super(sessionId);
-        this.toolHandler = new ToolHandler(noAgi);
+        super(sessionId)
+        this.toolHandler = new ToolHandler(noAgi)
     }
 
     async processBashCommand(bashPrompt: string): Promise<void> {
@@ -46,7 +46,7 @@ System Context:
                     tools: [{type: "bash_20241022", name: "bash"}
                         , ...MEMORY_TOOLS
                     ],
-                    system: systemContext,
+                    system: this.getSystemPrompt(systemContext),
                     betas: ["computer-use-2024-10-22"],
                 })
 
@@ -65,17 +65,17 @@ System Context:
                     break
                 }
 
-                const toolResults = await this.toolHandler.processToolCalls(response.content);
+                const toolResults = await this.toolHandler.processToolCalls(response.content)
 
                 if (toolResults.length) {
                     this.messages.push({
                         role: "user",
                         content: [toolResults[0].output],
-                    });
+                    })
 
                     if (toolResults[0].output.is_error) {
-                        log.error(`Error: ${toolResults[0].output.content[0].text}`);
-                        break;
+                        log.error(`Error: ${toolResults[0].output.content[0].text}`)
+                        break
                     }
                 }
             }

@@ -42,7 +42,7 @@ export class HybridSession extends BaseSession {
                         ...MEMORY_TOOLS,
                         ...CLIPBOARD_TOOLS,
                     ],
-                    system: `${COMBINED_SYSTEM_PROMPT}\nSystem Context: ${JSON.stringify(systemInfo)}`,
+                    system: this.getSystemPrompt(`${COMBINED_SYSTEM_PROMPT}\nSystem Context: ${JSON.stringify(systemInfo)}`),
                     betas: ["computer-use-2024-10-22"],
                 })
 
