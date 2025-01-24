@@ -1,10 +1,10 @@
 import {parseArgs} from "jsr:@std/cli/parse-args"
 import {loadUserSettings, saveUserSettings} from "../config/settings.ts"
-import {parseFlagForHelp} from "../utils/functions.ts"
+import {parseFlagForHelp, getCommandHelp} from "../utils/functions.ts"
 
 export async function handleSettings(args: string[]): Promise<void> {
     const settingsFlags = {
-        string: ["set-name", "add-command", "remove-command"],
+        string: ["set-name", "add-command", "remove-command", "set-jina-key"],
         boolean: ["list"],
     }
     const flags = parseArgs(args, settingsFlags)
@@ -18,18 +18,42 @@ export async function handleSettings(args: string[]): Promise<void> {
     if (flags["set-name"]) {
         settings.userName = flags["set-name"]
     }
+    else if (flags["set-jina-key"]) {
+        settings.jinaApiKey = flags["set-jina-key"]
+        console.log("Jina API key has been set")
+    }
     else if (flags["add-command"]) {
-        const addCommandValue = flags["add-command"] as string;
-        const [name, description, helpCmd, ...helpFlags] = addCommandValue.split(",")
-        settings.customCommands.push({
-            name,
-            description,
-            helpCommand: helpCmd,
-            helpFlags: helpFlags
-        })
+        const commandNameFromArg = flags["add-command"] as string
+        let commandName = commandNameFromArg
+        let commandDescription = ""
+        if (commandNameFromArg.includes(",")) {
+            const commandSplit = commandNameFromArg.split(",")
+            commandName = commandSplit[0]
+            commandDescription = commandSplit[1]
+        }
+        const helpInfo = await getCommandHelp(commandName)
+        console.log(`Got help info for ${commandName}}`)
+
+        const existingCommandIndex = settings.customCommands.findIndex(cmd => cmd.name === commandName)
+        if (existingCommandIndex >= 0) {
+            settings.customCommands[existingCommandIndex] = {
+                name: commandName,
+                description: commandDescription || helpInfo.description,
+                helpText: helpInfo.helpText,
+            }
+        } else {
+            settings.customCommands.push({
+                name: commandName,
+                description: commandDescription || helpInfo.description,
+                helpText: helpInfo.helpText,
+            })
+        }
+        console.log(`Added command ${commandName} with help information`)
     }
     else if (flags["remove-command"]) {
-        const index = settings.customCommands.findIndex(cmd => cmd.name === flags["remove-command"])
+        const commandNameFromArg = flags["remove-command"] as string
+        const index = settings.customCommands.findIndex(cmd => cmd.name === commandNameFromArg)
+        console.log(`Removing command ${flags["remove-command"]} at index ${index}`)
         if (index >= 0) settings.customCommands.splice(index, 1)
     }
     else if (flags.list) {

@@ -4,6 +4,7 @@ import {MemoryManager} from "../modules/memory/memory_manager.ts"
 import {ToolResult} from "../types/interfaces.ts"
 import {log} from "../config/logging.ts"
 import {ClipboardManager} from "../modules/clipboard/clipboard.ts"
+import {readPage, search, searchGrounding} from "./jina.ts"
 
 export class ToolHandler {
     private bashHandlers: BashHandlers
@@ -67,6 +68,12 @@ export class ToolHandler {
                 return {message: "Memories cleared successfully"}
             case "read_clipboard":
                 return await this.clipboardManager.readClipboard()
+            case "readPage":
+                return await readPage(toolCall.input.url)
+            case "search":
+                return await search(toolCall.input.searchTerm)
+            case "searchGrounding":
+                return await searchGrounding(toolCall.input.searchTerm)
             default:
                 throw new Error(`Unknown tool: ${toolCall.name}`)
         }

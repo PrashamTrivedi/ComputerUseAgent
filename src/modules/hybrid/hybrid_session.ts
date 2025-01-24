@@ -1,5 +1,5 @@
 import {BaseSession} from "../../utils/session.ts"
-import {COMBINED_SYSTEM_PROMPT, API_CONFIG, MEMORY_TOOLS, CLIPBOARD_TOOLS} from "../../config/constants.ts"
+import {COMBINED_SYSTEM_PROMPT, API_CONFIG, MEMORY_TOOLS, CLIPBOARD_TOOLS, JINA_TOOLS} from "../../config/constants.ts"
 import {log} from "../../config/logging.ts"
 import {ToolHandler} from "../../utils/tool_handler.ts"
 
@@ -41,6 +41,7 @@ export class HybridSession extends BaseSession {
                         {type: "text_editor_20241022", name: "str_replace_editor"},
                         ...MEMORY_TOOLS,
                         ...CLIPBOARD_TOOLS,
+                        ...JINA_TOOLS
                     ],
                     system: this.getSystemPrompt(`${COMBINED_SYSTEM_PROMPT}\nSystem Context: ${JSON.stringify(systemInfo)}`),
                     betas: ["computer-use-2024-10-22"],

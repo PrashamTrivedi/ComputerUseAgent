@@ -1,50 +1,51 @@
 export interface ToolCall {
-  type: string;
-  name: string;
-  id: string;
+  type: string
+  name: string
+  id: string
   input: {
-    command: string;
-    path: string;
-    file_text?: string;
-    old_str?: string;
-    new_str?: string;
-    insert_line?: number;
-  };
+    command: string
+    path: string
+    file_text?: string
+    old_str?: string
+    new_str?: string
+    insert_line?: number
+  }
 }
 
 export interface ToolResult {
-  tool_call_id: string;
+  tool_call_id: string
   output: {
-    type: string;
-    content: Array<{ type: string; text: string }>;
-    tool_use_id: string;
-    is_error: boolean;
-  };
+    type: string
+    content: Array<{type: string; text: string}>
+    tool_use_id: string
+    is_error: boolean
+  }
 }
 
 export interface SystemInfo {
-  os: string;
-  arch: string;
-  isWsl: boolean;
-  shell: string;
+  os: string
+  arch: string
+  isWsl: boolean
+  shell: string
 }
 
 export interface Memory {
-  id: string;
-  content: string;
-  timestamp: number;
+  id: string
+  content: string
+  timestamp: number
 }
 
 export interface MemoryFile {
-  memories: Memory[];
+  memories: Memory[]
 }
 
 export interface UserSettings {
-  userName: string;
+  userName: string
   customCommands: {
-    name: string;
-    description: string;
-    helpCommand?: string;
-    helpFlags?: string[];
-  }[];
+    name: string
+    description: string
+    helpCommand?: string
+    helpText?: string
+  }[]
+  jinaApiKey?: string
 }

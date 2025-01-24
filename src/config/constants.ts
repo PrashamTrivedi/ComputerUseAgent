@@ -1,7 +1,7 @@
 import {join} from "jsr:@std/path"
 import Anthropic from "npm:@anthropic-ai/sdk"
 import {homedir} from "node:os"
-import {loadUserSettings} from "./settings.ts"
+import {isJinaAvailable, loadUserSettings} from "./settings.ts"
 
 export const EDITOR_DIR = join(homedir(), ".ComputerUseAgent", "editor_dir")
 export const SESSIONS_DIR = join(homedir(), ".ComputerUseAgent", "sessions")
@@ -63,6 +63,15 @@ You have access to following tools and capabilities:
 - CLIPBOARD_TOOLS:
     - Name: "read_clipboard"
     - Arguments: none
+${isJinaAvailable() ? `
+- JINA_TOOLS:
+    - Name: "readPage"
+    - Arguments: {url: string}
+    - Name: "search"
+    - Arguments: {searchTerm: string}
+    - Name: "searchGrounding"
+    - Arguments: {searchTerm: string}
+` : ''}
 
 Before taking any action, follow these steps:
 
@@ -93,6 +102,15 @@ Your capabilities include:
    - Can add, retrieve, and clear memories
    - Use memory for context persistence
 
+4. Clipboard Access:
+    - Can read content from the system clipboard
+${isJinaAvailable() ? `
+5. Jina API Integration:
+    - Can read and parse content from a URL
+    - Can search content using Jina Search API
+    - Can search with grounding using Jina Grounding API
+` : ''}
+
 Always present your solution in this order:
 1. Understanding of the request
 2. Step-by-step plan
@@ -101,7 +119,7 @@ Always present your solution in this order:
 export const API_CONFIG = {
     MODEL: "claude-3-5-sonnet-20241022",
     INTENT_MODEL: "claude-3-5-haiku-20241022",
-    MAX_TOKENS: 4096,
+    MAX_TOKENS: 8192,
     MAX_INTENT_TOKENS: 20,
 }
 
@@ -150,12 +168,66 @@ export const CLIPBOARD_TOOLS: Anthropic.Beta.BetaTool[] = [
     }
 ]
 
+export const JINA_TOOLS: Anthropic.Beta.BetaTool[] = [
+    {
+        type: "custom",
+        name: "readPage",
+        description: "Read and parse content from a URL using Jina Reader API",
+        input_schema: {
+            type: "object",
+            properties: {
+                url: {
+                    type: "string",
+                    description: "The URL to read and parse",
+                },
+            },
+            required: ["url"],
+        },
+    },
+    {
+        type: "custom",
+        name: "search",
+        description: "Search content using Jina Search API",
+        input_schema: {
+            type: "object",
+            properties: {
+                searchTerm: {
+                    type: "string",
+                    description: "The term to search for",
+                },
+            },
+            required: ["searchTerm"],
+        },
+    },
+    {
+        type: "custom",
+        name: "searchGrounding",
+        description: "Search with grounding using Jina Grounding API",
+        input_schema: {
+            type: "object",
+            properties: {
+                searchTerm: {
+                    type: "string",
+                    description: "The term to search for with grounding",
+                },
+            },
+            required: ["searchTerm"],
+        },
+    },
+]
+
+export const ALL_TOOLS = [
+    ...MEMORY_TOOLS,
+    ...CLIPBOARD_TOOLS,
+    ...(isJinaAvailable() ? JINA_TOOLS : []),
+]
+
 export function getSystemContext(basePrompt: string): string {
     const settings = loadUserSettings()
     const customCommandsContext = settings.customCommands.length > 0
-        ? "\nCustom Commands:\n" + settings.customCommands
+        ? "\nAvailable Commands:\n" + settings.customCommands
             .map(cmd => `- ${cmd.name}: ${cmd.description}${cmd.helpCommand ? `\n  Help: ${cmd.helpCommand}` : ''
-                }${cmd.helpFlags ? `\n  Flags: ${cmd.helpFlags.join(', ')}` : ''
+                }${cmd.helpText ? `\n  Flags: ${cmd.helpText}` : ''
                 }`).join('\n')
         : ''
 

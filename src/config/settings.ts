@@ -4,7 +4,8 @@ import {UserSettings} from "../types/interfaces.ts"
 
 const DEFAULT_SETTINGS: UserSettings = {
     userName: "User",
-    customCommands: []
+    customCommands: [],
+    jinaApiKey: undefined
 }
 
 const SETTINGS_PATH = join(homedir(), ".ComputerUseAgent", "settings.json")
@@ -20,4 +21,14 @@ export function loadUserSettings(): UserSettings {
 
 export function saveUserSettings(settings: UserSettings) {
     Deno.writeTextFileSync(SETTINGS_PATH, JSON.stringify(settings, null, 2))
+}
+
+export function isJinaAvailable(): boolean {
+    const settings = loadUserSettings();
+    return Boolean(settings.jinaApiKey);
+}
+
+export function getJinaApiKey(): string {
+    const settings = loadUserSettings();
+    return settings.jinaApiKey || "";
 }
