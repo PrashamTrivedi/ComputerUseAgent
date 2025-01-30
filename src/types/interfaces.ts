@@ -48,4 +48,14 @@ export interface UserSettings {
     helpText?: string
   }[]
   jinaApiKey?: string
+  toolConfigPath: string
+}
+
+export interface ToolConfig {
+  toolName: string
+  command: string
+  input: string
+  output: string
+  description: string
+  enabled: boolean
 }

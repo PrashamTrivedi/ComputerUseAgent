@@ -1,22 +1,29 @@
 import {BashHandlers} from "../modules/bash/handlers.ts"
 import {EditorHandlers} from "../modules/editor/handlers.ts"
 import {MemoryManager} from "../modules/memory/memory_manager.ts"
-import {ToolResult} from "../types/interfaces.ts"
-import {log} from "../config/logging.ts"
+import {ToolResult, ToolConfig} from "../types/interfaces.ts"
 import {ClipboardManager} from "../modules/clipboard/clipboard.ts"
 import {readPage, search, searchGrounding} from "./jina.ts"
+import {DynamicToolHandler} from "./dynamic_tool_handler.ts"
+import {MEMORY_TOOLS, CLIPBOARD_TOOLS, JINA_TOOLS} from "../config/constants.ts"
+import {isJinaAvailable} from "../config/settings.ts"
+import Anthropic from "anthropic"
 
 export class ToolHandler {
     private bashHandlers: BashHandlers
     private editorHandlers: EditorHandlers
     private memoryManager: MemoryManager
     private clipboardManager: ClipboardManager
+    private dynamicHandler?: DynamicToolHandler
 
-    constructor(noAgi = false) {
+    constructor(noAgi = false, toolConfig?: ToolConfig[]) {
         this.bashHandlers = new BashHandlers(noAgi)
         this.editorHandlers = new EditorHandlers()
         this.memoryManager = new MemoryManager()
         this.clipboardManager = new ClipboardManager()
+        if (toolConfig) {
+            this.dynamicHandler = new DynamicToolHandler(toolConfig, noAgi)
+        }
     }
 
     async processToolCalls(content: any[]): Promise<ToolResult[]> {
@@ -54,6 +61,10 @@ export class ToolHandler {
     }
 
     private async handleTool(toolCall: any) {
+        if (this.dynamicHandler && toolCall.function.name in this.dynamicHandler.getTools()) {
+            return await this.dynamicHandler.handleDynamicTool(toolCall)
+        }
+
         switch (toolCall.name) {
             case "bash":
                 return await this.bashHandlers.handleBashCommand(toolCall.input)
@@ -77,5 +88,16 @@ export class ToolHandler {
             default:
                 throw new Error(`Unknown tool: ${toolCall.name}`)
         }
+    }
+
+    getAllTools(): Anthropic.Beta.BetaTool[] {
+        const baseTools = [
+            ...MEMORY_TOOLS,
+            ...CLIPBOARD_TOOLS,
+            ...(isJinaAvailable() ? JINA_TOOLS : []),
+            ...(this.dynamicHandler ? this.dynamicHandler.getTools() : [])
+        ]
+
+        return baseTools
     }
 }

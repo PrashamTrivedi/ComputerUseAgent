@@ -7,6 +7,7 @@
   "imports": {
     "@std/assert": "jsr:@std/assert@1",
     "@db/sqlite": "jsr:@db/sqlite",
-    "table": "jsr:@sauber/table"
+    "table": "jsr:@sauber/table",
+    "anthropic": "npm:@anthropic-ai/sdk"
   }
 }

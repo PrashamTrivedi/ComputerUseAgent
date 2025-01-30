@@ -1,4 +1,4 @@
-import {Anthropic} from "npm:@anthropic-ai/sdk"
+import {Anthropic} from "anthropic"
 import {format} from "jsr:@std/datetime"
 import {crypto} from "jsr:@std/crypto"
 import {log} from "../config/logging.ts"

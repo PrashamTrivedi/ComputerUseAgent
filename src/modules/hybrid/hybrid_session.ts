@@ -1,16 +1,18 @@
 import {BaseSession} from "../../utils/session.ts"
-import {COMBINED_SYSTEM_PROMPT, API_CONFIG, MEMORY_TOOLS, CLIPBOARD_TOOLS, JINA_TOOLS} from "../../config/constants.ts"
+import {COMBINED_SYSTEM_PROMPT, API_CONFIG} from "../../config/constants.ts"
 import {log} from "../../config/logging.ts"
 import {ToolHandler} from "../../utils/tool_handler.ts"
-
-
+import {getConfigFileLocation} from "../../config/settings.ts"
+import {ToolConfigManager} from "../../config/tool_config.ts"
 
 export class HybridSession extends BaseSession {
     private toolHandler: ToolHandler
 
     constructor(sessionId: string, noAgi = false) {
         super(sessionId)
-        this.toolHandler = new ToolHandler(noAgi)
+        const configPath = getConfigFileLocation()
+        const toolConfig = new ToolConfigManager().loadConfig(configPath)
+        this.toolHandler = new ToolHandler(noAgi, toolConfig)
     }
 
     async process(prompt: string): Promise<void> {
@@ -39,9 +41,7 @@ export class HybridSession extends BaseSession {
                     tools: [
                         {type: "bash_20241022", name: "bash"},
                         {type: "text_editor_20241022", name: "str_replace_editor"},
-                        ...MEMORY_TOOLS,
-                        ...CLIPBOARD_TOOLS,
-                        ...JINA_TOOLS
+                        ...this.toolHandler.getAllTools()
                     ],
                     system: this.getSystemPrompt(`${COMBINED_SYSTEM_PROMPT}\nSystem Context: ${JSON.stringify(systemInfo)}`),
                     betas: ["computer-use-2024-10-22"],

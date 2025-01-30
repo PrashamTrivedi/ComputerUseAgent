@@ -1,10 +1,10 @@
-import { Anthropic } from "npm:@anthropic-ai/sdk";
-import { API_CONFIG } from "../config/constants.ts";
+import {Anthropic} from "anthropic"
+import {API_CONFIG} from "../config/constants.ts"
 
 export async function determineIntent(prompt: string): Promise<string> {
     const client = new Anthropic({
         apiKey: Deno.env.get("ANTHROPIC_API_KEY") ?? "",
-    });
+    })
 
     const message = await client.messages.create({
         model: API_CONFIG.INTENT_MODEL,
@@ -40,7 +40,7 @@ export async function determineIntent(prompt: string): Promise<string> {
             role: "user",
             content: prompt,
         }],
-    });
+    })
 
-    return message.content.find((block) => block.type === "text")?.text ?? "editor";
+    return message.content.find((block) => block.type === "text")?.text ?? "editor"
 }

@@ -5,7 +5,8 @@ import {UserSettings} from "../types/interfaces.ts"
 const DEFAULT_SETTINGS: UserSettings = {
     userName: "User",
     customCommands: [],
-    jinaApiKey: undefined
+    jinaApiKey: undefined,
+    toolConfigPath: join(homedir(), ".ComputerUseAgent", "tools.json")
 }
 
 const SETTINGS_PATH = join(homedir(), ".ComputerUseAgent", "settings.json")
@@ -24,11 +25,16 @@ export function saveUserSettings(settings: UserSettings) {
 }
 
 export function isJinaAvailable(): boolean {
-    const settings = loadUserSettings();
-    return Boolean(settings.jinaApiKey);
+    const settings = loadUserSettings()
+    return Boolean(settings.jinaApiKey)
 }
 
 export function getJinaApiKey(): string {
-    const settings = loadUserSettings();
-    return settings.jinaApiKey || "";
+    const settings = loadUserSettings()
+    return settings.jinaApiKey || ""
+}
+
+export function getConfigFileLocation(): string {
+    const settings = loadUserSettings()
+    return settings.toolConfigPath
 }

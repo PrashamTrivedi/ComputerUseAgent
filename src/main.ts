@@ -49,7 +49,6 @@ async function main() {
     const session = new BashSession(sessionId, flags["no-agi"])
     await session.processBashCommand(prompt)
   } else {
-    // Default to hybrid mode for any other mode value
     const session = new HybridSession(sessionId, flags["no-agi"])
     await session.process(prompt)
   }

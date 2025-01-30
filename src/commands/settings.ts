@@ -4,7 +4,7 @@ import {parseFlagForHelp, getCommandHelp} from "../utils/functions.ts"
 
 export async function handleSettings(args: string[]): Promise<void> {
     const settingsFlags = {
-        string: ["set-name", "add-command", "remove-command", "set-jina-key"],
+        string: ["set-name", "add-command", "remove-command", "set-jina-key", "set-config"],
         boolean: ["list"],
     }
     const flags = parseArgs(args, settingsFlags)
@@ -15,7 +15,11 @@ export async function handleSettings(args: string[]): Promise<void> {
     }
     const settings = await loadUserSettings()
 
-    if (flags["set-name"]) {
+    if (flags["set-config"]) {
+        settings.toolConfigPath = flags["set-config"]
+        console.log(`Tool configuration path set to: ${flags["set-config"]}`)
+    }
+    else if (flags["set-name"]) {
         settings.userName = flags["set-name"]
     }
     else if (flags["set-jina-key"]) {

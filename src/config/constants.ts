@@ -1,11 +1,12 @@
 import {join} from "jsr:@std/path"
-import Anthropic from "npm:@anthropic-ai/sdk"
+import Anthropic from "anthropic"
 import {homedir} from "node:os"
 import {isJinaAvailable, loadUserSettings} from "./settings.ts"
 
 export const EDITOR_DIR = join(homedir(), ".ComputerUseAgent", "editor_dir")
 export const SESSIONS_DIR = join(homedir(), ".ComputerUseAgent", "sessions")
 export const LOGS_DIR = join(homedir(), ".ComputerUseAgent", "logs")
+export const DEFAULT_TOOLS_CONFIG_PATH = join(homedir(), ".ComputerUseAgent", "settings.json")
 
 export const EDITOR_SYSTEM_PROMPT = Deno.env.get("EDITOR_SYSTEM_PROMPT") ??
     `You are a helpful assistant that helps users edit and work with text files.
@@ -216,11 +217,7 @@ export const JINA_TOOLS: Anthropic.Beta.BetaTool[] = [
     },
 ]
 
-export const ALL_TOOLS = [
-    ...MEMORY_TOOLS,
-    ...CLIPBOARD_TOOLS,
-    ...(isJinaAvailable() ? JINA_TOOLS : []),
-]
+// Remove ALL_TOOLS export and definition
 
 export function getSystemContext(basePrompt: string): string {
     const settings = loadUserSettings()
