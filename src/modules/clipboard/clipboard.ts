@@ -39,6 +39,7 @@ export class ClipboardManager {
 
     async readClipboard(): Promise<string> {
         try {
+            log.info(`Reading clipboard`)
             const os = Deno.build.os
             const isWsl = Deno.env.get("WSL_DISTRO_NAME") !== undefined
 

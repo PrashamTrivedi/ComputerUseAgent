@@ -6,13 +6,15 @@ import {format} from "jsr:@std/datetime"
 import {crypto} from "jsr:@std/crypto"
 
 import {setupLogging, log} from "./config/logging.ts"
-import {EDITOR_DIR, SESSIONS_DIR} from "./config/constants.ts"
+import {EDITOR_DIR, SESSIONS_DIR, DEFAULT_TOOLS_CONFIG_PATH, MEMORY_PATH} from "./config/constants.ts"
 import {EditorSession} from "./modules/editor/editor_session.ts"
 import {BashSession} from "./modules/bash/bash_session.ts"
 import {HybridSession} from "./modules/hybrid/hybrid_session.ts"
 import {parseFlagForHelp} from "./utils/functions.ts"
 import {handleHistory} from "./commands/history.ts"
 import {handleSettings} from "./commands/settings.ts"
+import {loadUserSettings} from "./config/settings.ts"
+import {openInEditor} from "./commands/editor.ts"
 
 async function main() {
   await setupLogging()
@@ -39,6 +41,21 @@ async function main() {
     return
   } else if (flags._[0] === "help") {
     console.log(parseFlagForHelp(argParseConfig))
+    return
+  } else if (flags._[0] === "edit") {
+    const settings = loadUserSettings()
+    switch (flags._[1]) {
+      case "tools":
+        log.info(`Opening tools config file: ${settings.toolConfigPath}`)
+        await openInEditor(settings.toolConfigPath || DEFAULT_TOOLS_CONFIG_PATH)
+        return
+      case "memory":
+        log.info(`Opening memory file: ${MEMORY_PATH}`)
+        await openInEditor(MEMORY_PATH)
+        return
+      default:
+        console.log("Usage: edit [tools|memory]")
+    }
     return
   }
 

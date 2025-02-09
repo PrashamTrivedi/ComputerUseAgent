@@ -8,6 +8,8 @@ import {DynamicToolHandler} from "./dynamic_tool_handler.ts"
 import {MEMORY_TOOLS, CLIPBOARD_TOOLS, JINA_TOOLS} from "../config/constants.ts"
 import {isJinaAvailable} from "../config/settings.ts"
 import Anthropic from "anthropic"
+import {ToolConfigManager} from "../config/tool_config.ts"
+import {log} from "../config/logging.ts"
 
 export class ToolHandler {
     private bashHandlers: BashHandlers
@@ -21,8 +23,15 @@ export class ToolHandler {
         this.editorHandlers = new EditorHandlers()
         this.memoryManager = new MemoryManager()
         this.clipboardManager = new ClipboardManager()
+
+        // Validate tool config before initialization
         if (toolConfig) {
-            this.dynamicHandler = new DynamicToolHandler(toolConfig, noAgi)
+            const configManager = new ToolConfigManager()
+            if (configManager.validateToolConfig(toolConfig)) {
+                this.dynamicHandler = new DynamicToolHandler(toolConfig, noAgi)
+            } else {
+                console.warn("Invalid tool configuration provided")
+            }
         }
     }
 
@@ -61,10 +70,8 @@ export class ToolHandler {
     }
 
     private async handleTool(toolCall: any) {
-        if (this.dynamicHandler && toolCall.function.name in this.dynamicHandler.getTools()) {
-            return await this.dynamicHandler.handleDynamicTool(toolCall)
-        }
-
+        const availableTools = this.dynamicHandler?.getTools() ?? []
+        const matchedTool = availableTools.find(t => t.name === toolCall.name)
         switch (toolCall.name) {
             case "bash":
                 return await this.bashHandlers.handleBashCommand(toolCall.input)
@@ -86,6 +93,9 @@ export class ToolHandler {
             case "searchGrounding":
                 return await searchGrounding(toolCall.input.searchTerm)
             default:
+                if (matchedTool) {
+                    return await this.dynamicHandler?.handleDynamicTool(toolCall)
+                }
                 throw new Error(`Unknown tool: ${toolCall.name}`)
         }
     }

@@ -68,7 +68,6 @@ export class PromptDatabase {
                 cost: data.cost
             }
         )
-        log.debug({number})
         return number
     }
 

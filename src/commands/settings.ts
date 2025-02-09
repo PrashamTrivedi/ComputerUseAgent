@@ -1,11 +1,13 @@
 import {parseArgs} from "jsr:@std/cli/parse-args"
 import {loadUserSettings, saveUserSettings} from "../config/settings.ts"
 import {parseFlagForHelp, getCommandHelp} from "../utils/functions.ts"
+import {DEFAULT_TOOLS_CONFIG_PATH} from "../config/constants.ts"
 
 export async function handleSettings(args: string[]): Promise<void> {
     const settingsFlags = {
-        string: ["set-name", "add-command", "remove-command", "set-jina-key", "set-config"],
+        string: ["set-name", "add-command", "remove-command", "set-jina-key", "set-config", "set-editor"],
         boolean: ["list"],
+
     }
     const flags = parseArgs(args, settingsFlags)
 
@@ -63,6 +65,10 @@ export async function handleSettings(args: string[]): Promise<void> {
     else if (flags.list) {
         console.log(JSON.stringify(settings, null, 2))
         return
+    }
+    else if (flags["set-editor"]) {
+        settings.editorCommand = flags["set-editor"]
+        console.log(`Editor command set to: ${flags["set-editor"]}`)
     }
 
     await saveUserSettings(settings)

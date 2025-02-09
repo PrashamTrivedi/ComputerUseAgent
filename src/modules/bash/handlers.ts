@@ -12,6 +12,7 @@ export class BashHandlers {
     async handleBashCommand(
         toolCall: Record<string, any>,
     ): Promise<Record<string, any>> {
+        log.info(`I am running command: ${toolCall.command}`)
         try {
             const command = toolCall.command as string
             const restart = toolCall.restart ?? false

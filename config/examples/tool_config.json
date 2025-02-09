@@ -1,0 +1,46 @@
+{
+  "tools": [
+    {
+      "toolName": "generateText",
+      "command": "python generate.py --prompt '{{prompt}}'",
+      "output": "string",
+      "description": "Generate text using AI",
+      "enabled": true,
+      "inputs": [
+        {
+          "name": "prompt",
+          "type": "string",
+          "description": "Input prompt",
+          "required": true
+        }
+      ]
+    },
+    {
+      "toolName": "multipleGenerate",
+      "command": "python generate.py --prompt '{{prompt}}' --dir '{{currentDirectory}}' --count {{numberOfGenerations}}",
+      "output": "string",
+      "description": "Generate multiple texts",
+      "enabled": true,
+      "inputs": [
+        {
+          "name": "prompt",
+          "type": "string",
+          "description": "Input prompt",
+          "required": true
+        },
+        {
+          "name": "currentDirectory",
+          "type": "string",
+          "description": "Output directory",
+          "required": true
+        },
+        {
+          "name": "numberOfGenerations",
+          "type": "number",
+          "description": "Number of texts to generate",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

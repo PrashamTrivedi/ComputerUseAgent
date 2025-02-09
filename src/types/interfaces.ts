@@ -49,13 +49,21 @@ export interface UserSettings {
   }[]
   jinaApiKey?: string
   toolConfigPath: string
+  editorCommand: string
+}
+
+interface ToolInputConfig {
+  name: string
+  type: "string" | "number" | "boolean"
+  description?: string
+  required?: boolean
 }
 
 export interface ToolConfig {
   toolName: string
   command: string
-  input: string
   output: string
+  inputs: ToolInputConfig[]
   description: string
   enabled: boolean
 }
