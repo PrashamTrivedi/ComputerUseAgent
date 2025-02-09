@@ -16,10 +16,13 @@ jobs:
         include:
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
+            release_name: ComputerUseAgent-linux
           - os: windows-latest
             target: x86_64-pc-windows-msvc
+            release_name: ComputerUseAgent-windows
           - os: macos-latest
             target: x86_64-apple-darwin
+            release_name: ComputerUseAgent-macos
 
     steps:
       - uses: actions/checkout@v4
@@ -30,7 +33,7 @@ jobs:
           deno-version: v2.x
 
       - name: Build binary
-        run: deno compile --allow-all --target ${{ matrix.target }} --output ComputerUseAgent src/main.ts
+        run: deno compile --allow-all --target ${{ matrix.target }} --output ${{ matrix.release_name }} src/main.ts
 
       - name: Upload Release Asset
         uses: softprops/action-gh-release@v2
