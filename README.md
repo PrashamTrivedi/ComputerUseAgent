@@ -1,4 +1,5 @@
 # ComputerUseAgent
+[![Nightly Build](https://github.com/yourusername/ComputerUseAgent/actions/workflows/nightly.yml/badge.svg)](https://github.com/yourusername/ComputerUseAgent/actions/workflows/nightly.yml)
 
 A sophisticated Deno-based CLI tool that provides AI-powered file editing and bash command execution capabilities using Claude 3 API.
 
@@ -7,12 +8,19 @@ A sophisticated Deno-based CLI tool that provides AI-powered file editing and ba
 - **Dual Mode Operation**:
   - Editor mode for AI-assisted text file manipulation
   - Bash mode for intelligent command execution
+  - Hybrid mode for combined capabilities
 - **Memory Management**
 - **Comprehensive Logging**
-- **Token Usage Tracking**
+  - Text response content tracking
+  - Debug logging for history entries
+  - Token usage tracking
 - **Cost Calculation**
+- **History Management** with database integration
+- **Clipboard Management** with cross-platform support
+- **Tool Configuration Management**
+- **User Settings Management**
+- **Jina API Integration** for enhanced search capabilities
 
-  
 ## Demo
 
 
@@ -85,7 +93,17 @@ Key configuration files:
 
 - [`src/config/constants.ts`](src/config/constants.ts): System-wide constants and API settings
 - [`src/config/logging.ts`](src/config/logging.ts): Logging configuration
+- [`src/config/tool_config.ts`](src/config/tool_config.ts): Tool configuration
 - [`deno.json`](deno.json): Deno project configuration
+
+## Documentation
+
+- See [CHANGELOG.md](CHANGELOG.md) for detailed version history and latest changes
+- Key configuration files:
+  - [`src/config/constants.ts`](src/config/constants.ts): System-wide constants and API settings
+  - [`src/config/logging.ts`](src/config/logging.ts): Logging configuration
+  - [`src/config/tool_config.ts`](src/config/tool_config.ts): Tool configuration
+  - [`deno.json`](deno.json): Deno project configuration
 
 ## Development
 
@@ -117,3 +135,11 @@ Logs are stored in `app.log` with both console and file output. The logging syst
 ## License
 
 See [LICENSE](LICENSE) file.
+
+## Releases
+### Installation
+You can download pre-built binaries for your platform from:
+- Latest stable release: [Releases page](https://github.com/PrashamTrivedi/ComputerUseAgent/releases/latest)
+- Nightly builds: [Nightly Release](https://github.com/PrashamTrivedi/ComputerUseAgent/releases/tag/nightly)
+
+Binaries are automatically built for Windows, Linux, and macOS.

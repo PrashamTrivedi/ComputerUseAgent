@@ -1,0 +1,53 @@
+name: Nightly Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+            target: linux
+          - os: windows-latest
+            target: windows
+          - os: macos-latest
+            target: darwin
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Get latest tag and commit hash
+        id: version
+        shell: bash
+        run: |
+          LATEST_TAG=$(git describe --tags --abbrev=0)
+          COMMIT_HASH=$(git rev-parse --short HEAD)
+          echo "version=${LATEST_TAG}-${COMMIT_HASH}" >> $GITHUB_OUTPUT
+
+      - name: Build binary
+        run: deno compile --allow-all --target ${{ matrix.target }} --output ComputerUseAgent src/main.ts
+
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ComputerUseAgent*
+          name: Nightly ${{ steps.version.outputs.version }}
+          tag_name: nightly
+          draft: false
+          prerelease: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
