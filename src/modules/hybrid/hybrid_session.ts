@@ -55,8 +55,12 @@ export class HybridSession extends BaseSession {
                     block.type === "text" ? {type: "text", text: block.text} : block
                 )
 
+                if (response.content.find((block) => block.type === "text")?.text) {
+                    console.log(`🤖 ${response.content.find((block) => block.type === "text")?.text}`)
+                }
+
                 this.messages.push({role: "assistant", content: responseContent})
-                
+
                 if (response.stop_reason !== "tool_use") {
                     console.log(response.content.find((block) => block.type === "text")?.text ?? "")
                     break
