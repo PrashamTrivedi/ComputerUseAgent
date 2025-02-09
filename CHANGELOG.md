@@ -31,3 +31,9 @@
 - bec3ab3 - Implement history management feature
 - c9babff - Promoted hybrid tool as main instead of beta
 - e952464 - Add clipboard management capabilities
+
+## [v1.2]
+### Changed
+- Enhanced GitHub Actions workflows:
+  - Updated to use dynamic release names for built binaries
+  - Added write permissions for nightly and release jobs
