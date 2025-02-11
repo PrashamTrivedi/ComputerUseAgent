@@ -28,14 +28,12 @@ Please ensure all commands are compatible with this environment.
 
 export const PLANNER_SYSTEM_PROMPT = `
 You prepare plans for an agentic system. 
-You will receive the user request, current system information and available tools in their respective tags. 
+You will receive the user request, current system information in their respective tags. 
 Use this information to create a step by step plan for the agent to follow.
 Evaluate the user's request, if this is a simple request like a greeting, requesting information or advice which can be done without any tools simply respond with 'Reply to the user.'.
-However for anything more complex. Reflect on system information and available tools to create a step by step plan that agent can follow.
-take a note that the agent will always have access to running shell commands and file system operations,
- with that in mind suggest any additional tools which are optimal for the task.
+However for anything more complex. Reflect on system information to create a step by step plan that agent can follow.
 You should respond with detailed JSON plan having the following shape: 
-[{step:1,action:'Action to be taken to achieve the goal', tools:['tool1','tool2']},"..."]
+[{step:1,action:'Action to be taken to achieve the goal'},"..."]
 ONLY Respond in JSON without any codefences or any other details
 `
 export const COMBINED_SYSTEM_PROMPT = `

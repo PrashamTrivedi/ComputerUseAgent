@@ -9,8 +9,9 @@ import {ensureDir} from "jsr:@std/fs"
 export async function handleExport(args: string[]) {
     const db = new PromptDatabase()
     const commandFlags = {
-        string: ["session"],
+        string: ["id"],
         boolean: ["help"],
+        default: {help: false},
     }
 
     const flags = parseArgs(args, commandFlags)
@@ -18,30 +19,34 @@ export async function handleExport(args: string[]) {
     if (flags.help) {
         console.log(parseFlagForHelp(commandFlags))
         return
+    } else if (flags._[1] === "help") {
+        console.log(parseFlagForHelp(commandFlags))
+        return
     }
 
-    if (!flags.session) {
-        console.error("Session ID is required. Use --session <id>")
+    if (!flags.id) {
+        console.error("Prompt ID is required. Use --id <number>")
         return
     }
 
     try {
-        const markdown = await db.exportSessionToMarkdown(flags.session)
+        const id = parseInt(flags.id)
+        const markdown = await db.exportSessionToMarkdown(id)
 
         // Create exports directory
         const exportDir = join(Deno.cwd(), "exports")
         await ensureDir(exportDir)
 
         // Generate filename with timestamp
-        const filename = `session_${flags.session}_${format(new Date(), "yyyyMMdd_HHmmss")}.md`
+        const filename = `prompt_${flags.id}_${format(new Date(), "yyyyMMdd_HHmmss")}.md`
         const filepath = join(exportDir, filename)
 
         // Write markdown to file
         await Deno.writeTextFile(filepath, markdown)
 
-        console.log(`Session log exported to: ${filepath}`)
+        console.log(`Prompt log exported to: ${filepath}`)
     } catch (error) {
-        log.error(`Error exporting session: ${error}`)
-        console.error(`Failed to export session: ${error}`)
+        log.error(`Error exporting prompt: ${error}`)
+        console.error(`Failed to export prompt: ${error}`)
     }
 }

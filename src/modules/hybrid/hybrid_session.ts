@@ -39,8 +39,7 @@ export class HybridSession extends BaseSession {
                     content: [{type: "text", text: step.action}],
                 }
                 this.messages.push(message)
-                const tools = this.toolHandler.getAllTools().filter(tool => step.tools.includes(tool.name))
-
+                const tools = this.toolHandler.getAllTools()
                 let stepResult = ""
                 let stepError = ''
 
@@ -105,7 +104,7 @@ export class HybridSession extends BaseSession {
                     session_id: this.sessionId,
                     step_number: step.step,
                     step_description: step.action,
-                    tools_used: step.tools,
+                    tools_used: tools.map((tool) => tool.name),
                     result: stepResult,
                     error: stepError
                 })

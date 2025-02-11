@@ -13,6 +13,8 @@ export function parseFlagForHelp(options: ParseOptions): string {
         "  history    Show command history",
         "  settings   Manage settings",
         "  help       Show this help message",
+        "  edit       Open configuration files in editor",
+        "  export     Export session logs",
         "",
         "Options:"
     )
@@ -72,34 +74,34 @@ export function parseFlagForHelp(options: ParseOptions): string {
 }
 
 export async function getCommandHelp(command: string): Promise<{description: string, helpText: string}> {
-  try {
-    // Try --help first
-    const helpProcess = new Deno.Command(command, { args: ["--help"] });
-    const helpResult = await helpProcess.output();
-    
-    if (helpResult.success) {
-      const helpText = new TextDecoder().decode(helpResult.stdout);
-      // Extract first line or paragraph as description
-      const description = helpText.split('\n')[0].trim();
-      return { description, helpText };
-    }
+    try {
+        // Try --help first
+        const helpProcess = new Deno.Command(command, {args: ["--help"]})
+        const helpResult = await helpProcess.output()
 
-    // Try 'help' subcommand if --help fails
-    const altHelpProcess = new Deno.Command(command, { args: ["help"] });
-    const altHelpResult = await altHelpProcess.output();
-    
-    if (altHelpResult.success) {
-      const helpText = new TextDecoder().decode(altHelpResult.stdout);
-      const description = helpText.split('\n')[0].trim();
-      return { description, helpText };
-    }
+        if (helpResult.success) {
+            const helpText = new TextDecoder().decode(helpResult.stdout)
+            // Extract first line or paragraph as description
+            const description = helpText.split('\n')[0].trim()
+            return {description, helpText}
+        }
 
-    throw new Error("Could not fetch help information");
-  } catch (error) {
-    log.error(`Failed to get help for command ${command}: ${error}`);
-    return {
-      description: "No description available",
-      helpText: "Help information could not be retrieved"
-    };
-  }
+        // Try 'help' subcommand if --help fails
+        const altHelpProcess = new Deno.Command(command, {args: ["help"]})
+        const altHelpResult = await altHelpProcess.output()
+
+        if (altHelpResult.success) {
+            const helpText = new TextDecoder().decode(altHelpResult.stdout)
+            const description = helpText.split('\n')[0].trim()
+            return {description, helpText}
+        }
+
+        throw new Error("Could not fetch help information")
+    } catch (error) {
+        log.error(`Failed to get help for command ${command}: ${error}`)
+        return {
+            description: "No description available",
+            helpText: "Help information could not be retrieved"
+        }
+    }
 }

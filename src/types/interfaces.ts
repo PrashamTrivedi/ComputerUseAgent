@@ -69,11 +69,10 @@ export interface ToolConfig {
 }
 
 export interface PlanStep {
-    step: number;
-    action: string;
-    tools: string[];
+  step: number
+  action: string
 }
 
 export interface Plan {
-    planSteps: PlanStep[];
+  planSteps: PlanStep[]
 }

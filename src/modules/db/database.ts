@@ -57,9 +57,6 @@ export class PromptDatabase {
         cost REAL,
         session_id TEXT
       );
-
-      ALTER TABLE prompts ADD COLUMN session_id TEXT DEFAULT NULL;
-
       CREATE TABLE IF NOT EXISTS session_logs (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         session_id TEXT NOT NULL,
@@ -193,35 +190,39 @@ export class PromptDatabase {
         }))
     }
 
-    async exportSessionToMarkdown(sessionId: string): Promise<string> {
-        const session = await this.getPromptBySessionId(sessionId)
-        if (!session) {
-            throw new Error(`Session ${sessionId} not found`)
+    async exportSessionToMarkdown(promptId: number): Promise<string> {
+        const prompt = this.getPromptById(promptId)
+        if (!prompt) {
+            throw new Error(`Prompt ${promptId} not found`)
         }
 
-        const logs = await this.getSessionLogs(sessionId)
+        const logs = prompt.session_id ? 
+            await this.getSessionLogs(prompt.session_id) :
+            []
 
-        let markdown = `# Session Log: ${session.id}\n\n`
-        markdown += `- **Timestamp**: ${session.timestamp}\n`
-        markdown += `- **Mode**: ${session.mode}\n`
-        markdown += `- **Total Tokens**: ${session.tokens_used}\n`
-        markdown += `- **Total Cost**: $${session.cost.toFixed(6)}\n\n`
+        let markdown = `# Prompt Log: ${prompt.id}\n\n`
+        markdown += `- **Timestamp**: ${prompt.timestamp}\n`
+        markdown += `- **Mode**: ${prompt.mode}\n`
+        markdown += `- **Total Tokens**: ${prompt.tokens_used}\n`
+        markdown += `- **Total Cost**: $${prompt.cost.toFixed(6)}\n\n`
 
-        markdown += `## Original Prompt\n\n\`\`\`\n${session.prompt}\n\`\`\`\n\n`
+        markdown += `## Original Prompt\n\n\`\`\`\n${prompt.prompt}\n\`\`\`\n\n`
 
-        markdown += `## Execution Steps\n\n`
+        if (prompt.session_id) {
+            markdown += `## Execution Steps\n\n`
 
-        for (const log of logs) {
-            markdown += `### Step ${log.step_number}: ${log.step_description}\n\n`
-            markdown += `- **Time**: ${log.timestamp}\n`
-            markdown += `- **Tools Used**: ${log.tools_used}\n\n`
+            for (const log of logs) {
+                markdown += `### Step ${log.step_number}: ${log.step_description}\n\n`
+                markdown += `- **Time**: ${log.timestamp}\n`
+                markdown += `- **Tools Used**: ${log.tools_used}\n\n`
 
-            if (log.result) {
-                markdown += `**Result**:\n\`\`\`\n${log.result}\n\`\`\`\n\n`
-            }
+                if (log.result) {
+                    markdown += `**Result**:\n\`\`\`\n${log.result}\n\`\`\`\n\n`
+                }
 
-            if (log.error) {
-                markdown += `**Error**:\n\`\`\`\n${log.error}\n\`\`\`\n\n`
+                if (log.error) {
+                    markdown += `**Error**:\n\`\`\`\n${log.error}\n\`\`\`\n\n`
+                }
             }
         }
 
