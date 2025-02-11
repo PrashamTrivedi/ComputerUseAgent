@@ -5,7 +5,6 @@ import {log} from "../config/logging.ts"
 import {parseFlagForHelp} from "../utils/functions.ts"
 
 export async function handleHistory(args: string[]) {
-
     const db = new PromptDatabase()
     const commandFlags = {
         string: ["view", "limit"],
@@ -28,13 +27,16 @@ export async function handleHistory(args: string[]) {
             const entry = db.getPromptById(id)
 
             if (entry) {
-                HistoryViewer.displayEntry(entry)
+                let sessionLogs = undefined
+                if (entry.session_id) {
+                    sessionLogs = await db.getSessionLogs(entry.session_id)
+                }
+                HistoryViewer.displayEntry(entry, sessionLogs)
             } else {
                 console.error(`No entry found with ID ${id}`)
             }
         } else {
             const limit = parseInt(flags.limit || "10")
-
             const entries: PromptEntry[] = db.listPrompts(isNaN(limit) ? 10 : limit)
             HistoryViewer.displayHistory(entries)
         }

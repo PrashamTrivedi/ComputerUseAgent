@@ -9,7 +9,7 @@ export const LOGS_DIR = join(homedir(), ".ComputerUseAgent", "logs")
 export const DEFAULT_TOOLS_CONFIG_PATH = join(homedir(), ".ComputerUseAgent", "settings.json")
 export const MEMORY_PATH = "/root/memory.json"
 
-export const DEFAULT_EDITOR = Deno.env.get("EDITOR") ?? "nano";
+export const DEFAULT_EDITOR = Deno.env.get("EDITOR") ?? "nano"
 
 export const EDITOR_SYSTEM_PROMPT = Deno.env.get("EDITOR_SYSTEM_PROMPT") ??
     `You are a helpful assistant that helps users edit and work with text files.
@@ -26,8 +26,20 @@ You operate in the environment mentioned in <SystemInfo> tag.
 Please ensure all commands are compatible with this environment.
 `
 
+export const PLANNER_SYSTEM_PROMPT = `
+You prepare plans for an agentic system. 
+You will receive the user request, current system information and available tools in their respective tags. 
+Use this information to create a step by step plan for the agent to follow.
+Evaluate the user's request, if this is a simple request like a greeting, requesting information or advice which can be done without any tools simply respond with 'Reply to the user.'.
+However for anything more complex. Reflect on system information and available tools to create a step by step plan that agent can follow.
+take a note that the agent will always have access to running shell commands and file system operations,
+ with that in mind suggest any additional tools which are optimal for the task.
+You should respond with detailed JSON plan having the following shape: 
+[{step:1,action:'Action to be taken to achieve the goal', tools:['tool1','tool2']},"..."]
+ONLY Respond in JSON without any codefences or any other details
+`
 export const COMBINED_SYSTEM_PROMPT = `
-You are a versatile assistant with full system access for both file editing and command execution.
+You are a versatile assistant with full system access.
 You are currently operating in ${Deno.cwd()} directory.
 
 You have access to following tools and capabilities:

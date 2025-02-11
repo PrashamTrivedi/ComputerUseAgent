@@ -4,6 +4,7 @@ import {log} from "../../config/logging.ts"
 import {ToolHandler} from "../../utils/tool_handler.ts"
 import {getConfigFileLocation} from "../../config/settings.ts"
 import {ToolConfigManager} from "../../config/tool_config.ts"
+import generatePlan from "../planner/planner.ts"
 
 export class HybridSession extends BaseSession {
     private toolHandler: ToolHandler
@@ -25,64 +26,93 @@ export class HybridSession extends BaseSession {
                 cwd: Deno.cwd(),
             }
 
-            const message = {
-                role: "user",
-                content: [{type: "text", text: prompt}],
-            }
-            this.messages = [message]
+            // Generate execution plan
+            const plan = await generatePlan(JSON.stringify(systemInfo), this.toolHandler.getAllTools(), prompt)
+            log.info(`Plan: ${JSON.stringify(plan)}`)
 
-            log.info(`User input: ${JSON.stringify(message)}`)
+            // Execute each step in the plan
+            for (const step of plan.planSteps) {
+                console.log(`🤖 Executing step ${step.step}: ${step.action}`)
 
-            while (true) {
-                const response = await this.client.beta.messages.create({
-                    model: API_CONFIG.MODEL,
-                    max_tokens: API_CONFIG.MAX_TOKENS,
-                    messages: this.messages,
-                    tools: [
-                        {type: "bash_20241022", name: "bash"},
-                        {type: "text_editor_20241022", name: "str_replace_editor"},
-                        ...this.toolHandler.getAllTools()
-                    ],
-                    system: this.getSystemPrompt(`${COMBINED_SYSTEM_PROMPT}\nSystem Context: ${JSON.stringify(systemInfo)}`),
-                    betas: ["computer-use-2024-10-22"],
-                })
-
-                const inputTokens = response.usage?.input_tokens ?? 0
-                const outputTokens = response.usage?.output_tokens ?? 0
-                this.logger.updateTokenUsage(inputTokens, outputTokens)
-
-                const responseContent = response.content.map((block) =>
-                    block.type === "text" ? {type: "text", text: block.text} : block
-                )
-
-                if (response.content.find((block) => block.type === "text")?.text) {
-                    console.log(`🤖 ${response.content.find((block) => block.type === "text")?.text}`)
+                const message = {
+                    role: "user",
+                    content: [{type: "text", text: step.action}],
                 }
+                this.messages.push(message)
+                const tools = this.toolHandler.getAllTools().filter(tool => step.tools.includes(tool.name))
 
-                this.messages.push({role: "assistant", content: responseContent})
+                let stepResult = ""
+                let stepError = ''
 
-                if (response.stop_reason !== "tool_use") {
-                    console.log(response.content.find((block) => block.type === "text")?.text ?? "")
-                    break
-                }
+                try {
+                    while (true) {
+                        const response = await this.client.beta.messages.create({
+                            model: API_CONFIG.MODEL,
+                            max_tokens: API_CONFIG.MAX_TOKENS,
+                            messages: this.messages,
+                            tools: [
+                                {type: "bash_20241022", name: "bash"},
+                                {type: "text_editor_20241022", name: "str_replace_editor"},
+                                ...tools
+                            ],
+                            system: this.getSystemPrompt(`${COMBINED_SYSTEM_PROMPT}\nSystem Context: ${JSON.stringify(systemInfo)}`),
+                            betas: ["computer-use-2024-10-22"],
+                        })
 
-                const toolResults = await this.toolHandler.processToolCalls(response.content)
+                        const inputTokens = response.usage?.input_tokens ?? 0
+                        const outputTokens = response.usage?.output_tokens ?? 0
+                        this.logger.updateTokenUsage(inputTokens, outputTokens)
 
-                if (toolResults?.length) {
-                    this.messages.push({
-                        role: "user",
-                        content: [toolResults[0].output],
-                    })
+                        const responseContent = response.content.map((block) =>
+                            block.type === "text" ? {type: "text", text: block.text} : block
+                        )
 
-                    if (toolResults[0].output.is_error) {
-                        log.error(`Error: ${toolResults[0].output.content[0].text}`)
-                        break
+                        if (response.content.find((block) => block.type === "text")?.text) {
+                            const text = response.content.find((block) => block.type === "text")?.text || ""
+                            console.log(`🤖 ${text}`)
+                            stepResult += text + "\n"
+                        }
+
+                        this.messages.push({role: "assistant", content: responseContent})
+
+                        if (response.stop_reason !== "tool_use") {
+                            break
+                        }
+
+                        const toolResults = await this.toolHandler.processToolCalls(response.content)
+                        if (toolResults?.length) {
+                            this.messages.push({
+                                role: "user",
+                                content: [toolResults[0].output],
+                            })
+                            if (toolResults[0].output.is_error) {
+                                const error = toolResults[0].output.content[0].text
+                                log.error(`Error: ${error}`)
+                                stepError = error
+                                break
+                            }
+                            // Add tool result to step result
+                            stepResult += toolResults[0].output.content[0].text + "\n"
+                        }
                     }
+                } catch (error) {
+                    stepError = error instanceof Error ? error.message : String(error)
+                    log.error(`Error in step ${step.step}: ${stepError}`)
                 }
+
+                // Log the step execution
+                await this.db.logSessionStep({
+                    session_id: this.sessionId,
+                    step_number: step.step,
+                    step_description: step.action,
+                    tools_used: step.tools,
+                    result: stepResult,
+                    error: stepError
+                })
             }
 
             this.logger.logTotalCost()
-            await this.logInteraction('hybrid', prompt, "passed")
+            await this.logInteraction('hybrid', prompt, "completed")
         } catch (error) {
             log.error(`Error in hybrid process: ${error instanceof Error ? error.message : String(error)}`)
             if (error instanceof Error && error.stack) {

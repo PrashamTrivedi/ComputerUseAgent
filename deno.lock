@@ -365,7 +365,8 @@
     "dependencies": [
       "jsr:@db/sqlite@*",
       "jsr:@sauber/table@*",
-      "jsr:@std/assert@1"
+      "jsr:@std/assert@1",
+      "npm:@anthropic-ai/sdk@*"
     ]
   }
 }

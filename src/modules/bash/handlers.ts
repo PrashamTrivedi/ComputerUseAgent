@@ -41,8 +41,9 @@ export class BashHandlers {
                 // First attempt: Try running the command directly
                 const directProcess = new Deno.Command(command.split(" ")[0], {
                     args: command.split(" ").slice(1),
-                    env: this.environment,
+
                     stdout: "piped",
+
                     stderr: "piped",
                 })
                 const result = await directProcess.output()

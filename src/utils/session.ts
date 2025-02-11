@@ -1,4 +1,4 @@
-import {Anthropic} from "anthropic"
+import {Anthropic} from 'anthropic'
 import {format} from "jsr:@std/datetime"
 import {crypto} from "jsr:@std/crypto"
 import {log} from "../config/logging.ts"
@@ -75,12 +75,12 @@ export class BaseSession {
     const timestamp = format(new Date(), "yyyyMMdd-HHmmss")
     const randomBytes = crypto.getRandomValues(new Uint8Array(3))
     const randomHex = Array.from(randomBytes)
-      .map((b) => b.toString(16).padStart(2, "0"))
+      .map((b: number) => b.toString(16).padStart(2, "0"))
       .join("")
     return `${timestamp}-${randomHex}`
   }
 
-  protected async logInteraction(mode: string, prompt: string, result: string) {
+  protected async logInteraction(mode: string, prompt: string, result: string, session_id?: string) {
     const totalTokens = this.logger.getTotalTokens()
     const totalCost = this.logger.getTotalCost()
 
@@ -89,7 +89,8 @@ export class BaseSession {
       prompt,
       result,
       tokens_used: totalTokens,
-      cost: totalCost
+      cost: totalCost,
+      session_id: session_id || this.sessionId
     })
   }
 

@@ -67,3 +67,13 @@ export interface ToolConfig {
   description: string
   enabled: boolean
 }
+
+export interface PlanStep {
+    step: number;
+    action: string;
+    tools: string[];
+}
+
+export interface Plan {
+    planSteps: PlanStep[];
+}

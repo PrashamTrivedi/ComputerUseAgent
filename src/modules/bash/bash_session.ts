@@ -38,6 +38,7 @@ System Context:
 
             log.info(`User input: ${JSON.stringify(apiMessage)}`)
 
+            let result = ""
             while (true) {
                 const response = await this.client.beta.messages.create({
                     model: API_CONFIG.MODEL,
@@ -60,6 +61,11 @@ System Context:
 
                 this.messages.push({role: "assistant", content: responseContent})
 
+                if (response.content.find((block) => block.type === "text")?.text) {
+                    const text = response.content.find((block) => block.type === "text")?.text || ""
+                    result += text + "\n"
+                }
+
                 if (response.stop_reason !== "tool_use") {
                     console.log(response.content.find((block) => block.type === "text")?.text ?? "bash")
                     break
@@ -81,8 +87,10 @@ System Context:
             }
 
             this.logger.logTotalCost()
+            await this.logInteraction('bash', bashPrompt, result, this.sessionId)
         } catch (error) {
             log.error(`Error in processBashCommand: ${error}`)
+            await this.logInteraction('bash', bashPrompt, `${error}`, this.sessionId)
             throw error
         }
     }

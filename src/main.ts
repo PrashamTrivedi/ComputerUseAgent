@@ -13,6 +13,7 @@ import {HybridSession} from "./modules/hybrid/hybrid_session.ts"
 import {parseFlagForHelp} from "./utils/functions.ts"
 import {handleHistory} from "./commands/history.ts"
 import {handleSettings} from "./commands/settings.ts"
+import {handleExport} from "./commands/export.ts"
 import {loadUserSettings} from "./config/settings.ts"
 import {openInEditor} from "./commands/editor.ts"
 
@@ -38,6 +39,9 @@ async function main() {
     return
   } else if (flags._[0] === "settings") {
     await handleSettings(Deno.args)
+    return
+  } else if (flags._[0] === "export") {
+    await handleExport(Deno.args)
     return
   } else if (flags._[0] === "help") {
     console.log(parseFlagForHelp(argParseConfig))
