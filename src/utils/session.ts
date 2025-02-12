@@ -1,4 +1,4 @@
-import {Anthropic} from 'anthropic'
+import Anthropic from "anthropic"
 import {format} from "jsr:@std/datetime"
 import {crypto} from "jsr:@std/crypto"
 import {log} from "../config/logging.ts"
@@ -94,7 +94,10 @@ export class BaseSession {
     })
   }
 
-  protected getSystemPrompt(basePrompt: string): string {
-    return getSystemContext(basePrompt)
+  protected getSystemPrompt(
+    additionalTools: Anthropic.Beta.Messages.BetaTool[] = [],
+    additionalInstructions?: string
+  ): string {
+    return getSystemContext(additionalTools, additionalInstructions)
   }
 }

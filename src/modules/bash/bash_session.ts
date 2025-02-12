@@ -2,6 +2,7 @@ import {BaseSession} from "../../utils/session.ts"
 import {BASH_SYSTEM_PROMPT, API_CONFIG, MEMORY_TOOLS} from "../../config/constants.ts"
 import {log} from "../../config/logging.ts"
 import {ToolHandler} from "../../utils/tool_handler.ts"
+import Anthropic from "anthropic";
 
 export class BashSession extends BaseSession {
     private toolHandler: ToolHandler
@@ -47,7 +48,7 @@ System Context:
                     tools: [{type: "bash_20241022", name: "bash"}
                         , ...MEMORY_TOOLS
                     ],
-                    system: this.getSystemPrompt(systemContext),
+                    system: this.getSystemPrompt(),
                     betas: ["computer-use-2024-10-22"],
                 })
 

@@ -41,12 +41,6 @@ export interface MemoryFile {
 
 export interface UserSettings {
   userName: string
-  customCommands: {
-    name: string
-    description: string
-    helpCommand?: string
-    helpText?: string
-  }[]
   jinaApiKey?: string
   toolConfigPath: string
   editorCommand: string
@@ -75,4 +69,19 @@ export interface PlanStep {
 
 export interface Plan {
   planSteps: PlanStep[]
+}
+
+export interface FileTool {
+  command: 'view' | 'create' | 'str_replace' | 'insert' | 'undo_edit'
+  path: string
+  file_text?: string
+  old_str?: string
+  new_str?: string
+  insert_line?: number
+  view_range?: number[]
+}
+
+export interface BashTools {
+  command?: string
+  restart?: boolean
 }

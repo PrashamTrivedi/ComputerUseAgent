@@ -1,13 +1,16 @@
 import {BaseSession} from "../../utils/session.ts"
-import {COMBINED_SYSTEM_PROMPT, API_CONFIG} from "../../config/constants.ts"
+import {API_CONFIG} from "../../config/constants.ts"
 import {log} from "../../config/logging.ts"
 import {ToolHandler} from "../../utils/tool_handler.ts"
 import {getConfigFileLocation} from "../../config/settings.ts"
 import {ToolConfigManager} from "../../config/tool_config.ts"
 import generatePlan from "../planner/planner.ts"
+import {ToolCall} from "../../types/interfaces.ts"
+import Anthropic from "anthropic"
 
 export class HybridSession extends BaseSession {
     private toolHandler: ToolHandler
+    private cachedSystemPrompt: string = ""
 
     constructor(sessionId: string, noAgi = false) {
         super(sessionId)
@@ -25,6 +28,9 @@ export class HybridSession extends BaseSession {
                 shell: Deno.env.get("SHELL") || "Unknown",
                 cwd: Deno.cwd(),
             }
+
+            // Cache the system prompt
+            this.cachedSystemPrompt = this.getSystemPrompt(this.toolHandler.getDynamicTools())
 
             // Generate execution plan
             const plan = await generatePlan(JSON.stringify(systemInfo), this.toolHandler.getAllTools(), prompt)
@@ -54,7 +60,7 @@ export class HybridSession extends BaseSession {
                                 {type: "text_editor_20241022", name: "str_replace_editor"},
                                 ...tools
                             ],
-                            system: this.getSystemPrompt(`${COMBINED_SYSTEM_PROMPT}\nSystem Context: ${JSON.stringify(systemInfo)}`),
+                            system: this.cachedSystemPrompt,
                             betas: ["computer-use-2024-10-22"],
                         })
 
@@ -78,7 +84,7 @@ export class HybridSession extends BaseSession {
                             break
                         }
 
-                        const toolResults = await this.toolHandler.processToolCalls(response.content)
+                        const toolResults = await this.toolHandler.processToolCalls(response.content as Anthropic.Beta.BetaToolUseBlock[])
                         if (toolResults?.length) {
                             this.messages.push({
                                 role: "user",
@@ -90,7 +96,6 @@ export class HybridSession extends BaseSession {
                                 stepError = error
                                 break
                             }
-                            // Add tool result to step result
                             stepResult += toolResults[0].output.content[0].text + "\n"
                         }
                     }
@@ -111,7 +116,7 @@ export class HybridSession extends BaseSession {
             }
 
             this.logger.logTotalCost()
-            await this.logInteraction('hybrid', prompt, "completed")
+            await this.logInteraction('hybrid', `${this.cachedSystemPrompt}\n${prompt}`, "completed")
         } catch (error) {
             log.error(`Error in hybrid process: ${error instanceof Error ? error.message : String(error)}`)
             if (error instanceof Error && error.stack) {

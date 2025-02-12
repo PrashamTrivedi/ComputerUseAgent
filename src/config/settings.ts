@@ -1,11 +1,9 @@
 import {join} from "jsr:@std/path"
 import {homedir} from "node:os"
 import {UserSettings} from "../types/interfaces.ts"
-import {DEFAULT_EDITOR} from "./constants.ts"
 
 const DEFAULT_SETTINGS: UserSettings = {
     userName: "User",
-    customCommands: [],
     jinaApiKey: undefined,
     toolConfigPath: join(homedir(), ".ComputerUseAgent", "tools.json"),
     editorCommand: "nano"

@@ -1,7 +1,7 @@
 import {BashHandlers} from "../modules/bash/handlers.ts"
 import {EditorHandlers} from "../modules/editor/handlers.ts"
 import {MemoryManager} from "../modules/memory/memory_manager.ts"
-import {ToolResult, ToolConfig} from "../types/interfaces.ts"
+import {ToolResult, ToolConfig, ToolCall} from "../types/interfaces.ts"
 import {ClipboardManager} from "../modules/clipboard/clipboard.ts"
 import {readPage, search, searchGrounding} from "./jina.ts"
 import {DynamicToolHandler} from "./dynamic_tool_handler.ts"
@@ -9,7 +9,7 @@ import {MEMORY_TOOLS, CLIPBOARD_TOOLS, JINA_TOOLS} from "../config/constants.ts"
 import {isJinaAvailable} from "../config/settings.ts"
 import Anthropic from "anthropic"
 import {ToolConfigManager} from "../config/tool_config.ts"
-import {log} from "../config/logging.ts"
+
 
 export class ToolHandler {
     private bashHandlers: BashHandlers
@@ -109,5 +109,9 @@ export class ToolHandler {
         ]
 
         return baseTools
+    }
+
+    getDynamicTools(): Anthropic.Beta.BetaTool[] {
+        return this.dynamicHandler ? this.dynamicHandler.getTools() : []
     }
 }

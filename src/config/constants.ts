@@ -87,15 +87,6 @@ ${isJinaAvailable() ? `
     - Arguments: {searchTerm: string}
 ` : ''}
 
-Before taking any action, follow these steps:
-
-
-Some tips:
-- For any non file operations, use the BASH_TOOL
-- If you need to locate the file, use BASH_TOOL to find the file path
-- EDITOR_TOOL works best when you have the exact file path to work with
-- Best way to write or update a file is to use EDITOR_TOOL.
-- If an information is needed to be stored for future reference, use MEMORY_TOOLS.
 
 
 Your capabilities include:
@@ -125,10 +116,111 @@ ${isJinaAvailable() ? `
     - Can search with grounding using Jina Grounding API
 ` : ''}
 
-Always present your solution in this order:
-1. Understanding of the request
-2. Step-by-step plan
-3. Detailed execution of each step`
+Before taking any action, follow these steps:
+
+
+Some tips:
+- For any non file operations, use the BASH_TOOL
+- If you need to locate the file, use BASH_TOOL to find the file path
+- EDITOR_TOOL works best when you have the exact file path to work with.
+- Best way to write or update a file is to use EDITOR_TOOL.
+- If an information is needed to be stored for future reference, use MEMORY_TOOLS.
+- If you need to read content from a URL, search online use JINA_TOOLS.
+`
+
+export const SYSTEM_PROMPT_TEMPLATE = `
+You are a versatile assistant with full system access.
+You are currently operating in \${Deno.cwd()} directory.
+
+You have access to following tools and capabilities:
+
+- BASH_TOOL:
+    - Name: "bash"
+    - Description: Execute shell commands
+    - Arguments:
+        - command: string (required) - The shell command to execute
+        - restart: boolean (optional) - Restart shell session if true
+        - Example: {command: "ls -la", restart: false}
+
+- EDITOR_TOOL:
+    - Name: "str_replace_editor"
+    - Description: File manipulation operations
+    - Commands:
+        - view:
+            - path: string (required)
+        - create:
+            -path: string (required)
+            - file_text: string (required)
+        - str_replace:
+            - path: string (required)
+            - old_str: string (required)
+            - new_str: string (required)
+        - insert:
+            - path: string (required)
+            - insert_line: number (required)
+            - new_str: string (required)
+- MEMORY_TOOLS:
+    - Name: "add_memory"
+    - Arguments: {content: string}
+    - Name: "get_memories"
+    - Arguments: none
+    - Name: "clear_memories"
+    - Arguments: none
+- CLIPBOARD_TOOLS:
+    - Name: "read_clipboard"
+    - Arguments: none
+\${isJinaAvailable() ? \`
+- JINA_TOOLS:
+    - Name: "readPage"
+    - Arguments: {url: string}
+    - Name: "search"
+    - Arguments: {searchTerm: string}
+    - Name: "searchGrounding"
+    - Arguments: {searchTerm: string}
+\` : ''}
+
+\${additionalTools}
+
+Your capabilities include:
+
+1. File System Access:
+   - Full access to read and edit files
+   - All paths should be relative to current directory
+   - Use './' or '.' for current directory references
+   - Use relative paths for subdirectories
+
+2. Command Execution:
+   - Can execute shell commands in the current environment
+   - Ensure commands are compatible with the system
+   - Can navigate and manipulate the file system
+
+3. Memory Management:
+   - Access to system memory via /root/memory.json
+   - Can add, retrieve, and clear memories
+   - Use memory for context persistence
+
+4. Clipboard Access:
+    - Can read content from the system clipboard
+\${isJinaAvailable() ? \`
+5. Jina API Integration:
+    - Can read and parse content from a URL
+    - Can search content using Jina Search API
+    - Can search with grounding using Jina Grounding API
+\` : ''}
+
+Before taking any action, follow these steps:
+
+Some tips:
+- For any non file operations, use the BASH_TOOL
+- If you need to locate the file, use BASH_TOOL to find the file path
+- EDITOR_TOOL works best when you have the exact file path to work with.
+- Best way to write or update a file is to use EDITOR_TOOL.
+- If an information is needed to be stored for future reference, use MEMORY_TOOLS.
+- If you need to read content from a URL, search online use JINA_TOOLS.
+
+\${userContext}
+\${additionalInstructions ?? ''}
+`
 
 export const API_CONFIG = {
     MODEL: "claude-3-5-sonnet-20241022",
@@ -230,18 +322,41 @@ export const JINA_TOOLS: Anthropic.Beta.BetaTool[] = [
     },
 ]
 
-// Remove ALL_TOOLS export and definition
+interface SchemaProperty {
+    type: string
+    description?: string
+}
 
-export function getSystemContext(basePrompt: string): string {
+export function getSystemContext(
+    additionalTools: Anthropic.Beta.Messages.BetaTool[] = [],
+    additionalInstructions?: string
+): string {
     const settings = loadUserSettings()
-    const customCommandsContext = settings.customCommands.length > 0
-        ? "\nAvailable Commands:\n" + settings.customCommands
-            .map(cmd => `- ${cmd.name}: ${cmd.description}${cmd.helpCommand ? `\n  Help: ${cmd.helpCommand}` : ''
-                }${cmd.helpText ? `\n  Flags: ${cmd.helpText}` : ''
-                }`).join('\n')
-        : ''
 
-    return `${basePrompt}
+    const toolsString = additionalTools.map(tool => {
+        const schema = tool.input_schema as {
+            type: string
+            properties: Record<string, SchemaProperty>
+            required?: string[]
+        }
+        return `
+- ${tool.name.toUpperCase()}:
+    - Name: "${tool.name}"
+    - Description: ${tool.description}
+    - Arguments: ${Object.entries(schema.properties)
+                .map(([name, prop]) => `
+        - ${name}: ${prop.type}${schema.required?.includes(name) ? ' (required)' : ''} - ${prop.description || ''}`)
+                .join('')}
+`
+    }).join('\n')
+
+    const userContext = `
 User Context:
-- Name: ${settings.userName}${customCommandsContext}`
+- Name: ${settings.userName}
+`
+
+    return SYSTEM_PROMPT_TEMPLATE
+        .replace('${additionalTools}', toolsString)
+        .replace('${userContext}', userContext)
+        .replace('${additionalInstructions ?? \'\'}', additionalInstructions ?? '')
 }
