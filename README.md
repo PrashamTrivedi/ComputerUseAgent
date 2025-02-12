@@ -1,7 +1,9 @@
 # ComputerUseAgent
+
 [![Nightly Build](https://github.com/yourusername/ComputerUseAgent/actions/workflows/nightly.yml/badge.svg)](https://github.com/yourusername/ComputerUseAgent/actions/workflows/nightly.yml)
 
-A sophisticated Deno-based CLI tool that provides AI-powered file editing and bash command execution capabilities using Claude 3 API.
+A sophisticated Deno-based CLI tool that provides AI-powered file editing and
+bash command execution capabilities using Claude 3 API.
 
 ## Features
 
@@ -9,6 +11,10 @@ A sophisticated Deno-based CLI tool that provides AI-powered file editing and ba
   - Editor mode for AI-assisted text file manipulation
   - Bash mode for intelligent command execution
   - Hybrid mode for combined capabilities
+- **Export Functionality**
+  - Prompt ID-based export system
+  - Dedicated export paths
+  - Enhanced session logging
 - **Memory Management**
 - **Comprehensive Logging**
   - Text response content tracking
@@ -23,11 +29,10 @@ A sophisticated Deno-based CLI tool that provides AI-powered file editing and ba
 
 ## Demo
 
-
-
 https://github.com/user-attachments/assets/62a67ddb-d94f-4a83-8f50-d63ebe4f4c49
 
-This is a trimmed demo, Watch full demo on [Youtube](https://youtu.be/lX_jZ18HoGA)
+This is a trimmed demo, Watch full demo on
+[Youtube](https://youtu.be/lX_jZ18HoGA)
 
 ## Prerequisites
 
@@ -37,18 +42,21 @@ This is a trimmed demo, Watch full demo on [Youtube](https://youtu.be/lX_jZ18HoG
 ## Setup
 
 1. Clone the repository:
+
 ```sh
 git clone <repository-url>
 cd ComputerUseAgent
 ```
 
 2. Set up your environment:
+
 ```sh
 # Set your Anthropic API key
 export ANTHROPIC_API_KEY="your-api-key"
 ```
 
 3. Build the project:
+
 ```sh
 deno task build
 ```
@@ -74,6 +82,7 @@ deno run -A src/main.ts --mode=bash --no-agi "your command"
 # After building
 ./build/ComputerUseAgent --mode=editor "your prompt"
 ./build/ComputerUseAgent --mode=bash "your command"
+./build/ComputerUseAgent --export "prompt-id" # Export session data
 ```
 
 ## Project Structure
@@ -91,16 +100,19 @@ deno run -A src/main.ts --mode=bash --no-agi "your command"
 
 Key configuration files:
 
-- [`src/config/constants.ts`](src/config/constants.ts): System-wide constants and API settings
+- [`src/config/constants.ts`](src/config/constants.ts): System-wide constants
+  and API settings
 - [`src/config/logging.ts`](src/config/logging.ts): Logging configuration
 - [`src/config/tool_config.ts`](src/config/tool_config.ts): Tool configuration
 - [`deno.json`](deno.json): Deno project configuration
 
 ## Documentation
 
-- See [CHANGELOG.md](CHANGELOG.md) for detailed version history and latest changes
+- See [CHANGELOG.md](CHANGELOG.md) for detailed version history and latest
+  changes
 - Key configuration files:
-  - [`src/config/constants.ts`](src/config/constants.ts): System-wide constants and API settings
+  - [`src/config/constants.ts`](src/config/constants.ts): System-wide constants
+    and API settings
   - [`src/config/logging.ts`](src/config/logging.ts): Logging configuration
   - [`src/config/tool_config.ts`](src/config/tool_config.ts): Tool configuration
   - [`deno.json`](deno.json): Deno project configuration
@@ -117,7 +129,9 @@ deno task buildLocal
 
 ## Logging
 
-Logs are stored in `app.log` with both console and file output. The logging system tracks:
+Logs are stored in `app.log` with both console and file output. The logging
+system tracks:
+
 - User inputs
 - API usage
 - Command execution
@@ -137,9 +151,14 @@ Logs are stored in `app.log` with both console and file output. The logging syst
 See [LICENSE](LICENSE) file.
 
 ## Releases
+
 ### Installation
+
 You can download pre-built binaries for your platform from:
-- Latest stable release: [Releases page](https://github.com/PrashamTrivedi/ComputerUseAgent/releases/latest)
-- Nightly builds: [Nightly Release](https://github.com/PrashamTrivedi/ComputerUseAgent/releases/tag/nightly)
+
+- Latest stable release:
+  [Releases page](https://github.com/PrashamTrivedi/ComputerUseAgent/releases/latest)
+- Nightly builds:
+  [Nightly Release](https://github.com/PrashamTrivedi/ComputerUseAgent/releases/tag/nightly)
 
 Binaries are automatically built for Windows, Linux, and macOS.
