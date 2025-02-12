@@ -6,6 +6,7 @@ import {isJinaAvailable, loadUserSettings} from "./settings.ts"
 export const EDITOR_DIR = join(homedir(), ".ComputerUseAgent", "editor_dir")
 export const SESSIONS_DIR = join(homedir(), ".ComputerUseAgent", "sessions")
 export const LOGS_DIR = join(homedir(), ".ComputerUseAgent", "logs")
+export const EXPORT_PATH = join(homedir(), ".ComputerUseAgent", "exports")
 export const DEFAULT_TOOLS_CONFIG_PATH = join(homedir(), ".ComputerUseAgent", "settings.json")
 export const MEMORY_PATH = "/root/memory.json"
 
@@ -169,15 +170,6 @@ You have access to following tools and capabilities:
 - CLIPBOARD_TOOLS:
     - Name: "read_clipboard"
     - Arguments: none
-\${isJinaAvailable() ? \`
-- JINA_TOOLS:
-    - Name: "readPage"
-    - Arguments: {url: string}
-    - Name: "search"
-    - Arguments: {searchTerm: string}
-    - Name: "searchGrounding"
-    - Arguments: {searchTerm: string}
-\` : ''}
 
 \${additionalTools}
 

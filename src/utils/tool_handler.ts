@@ -112,6 +112,10 @@ export class ToolHandler {
     }
 
     getDynamicTools(): Anthropic.Beta.BetaTool[] {
-        return this.dynamicHandler ? this.dynamicHandler.getTools() : []
+        const dynamicTools = this.dynamicHandler ? this.dynamicHandler.getTools() : []
+        if (isJinaAvailable()) {
+            return [...dynamicTools, ...JINA_TOOLS]
+        }
+        return dynamicTools
     }
 }

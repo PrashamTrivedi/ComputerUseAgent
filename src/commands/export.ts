@@ -5,13 +5,17 @@ import {parseFlagForHelp} from "../utils/functions.ts"
 import {format} from "jsr:@std/datetime"
 import {join} from "jsr:@std/path"
 import {ensureDir} from "jsr:@std/fs"
+import {EXPORT_PATH} from "../config/constants.ts"
 
 export async function handleExport(args: string[]) {
     const db = new PromptDatabase()
     const commandFlags = {
-        string: ["id"],
+        string: ["id", "path"],
         boolean: ["help"],
-        default: {help: false},
+        default: {
+            help: false,
+            path: EXPORT_PATH,
+        },
     }
 
     const flags = parseArgs(args, commandFlags)
@@ -33,8 +37,8 @@ export async function handleExport(args: string[]) {
         const id = parseInt(flags.id)
         const markdown = await db.exportSessionToMarkdown(id)
 
-        // Create exports directory
-        const exportDir = join(Deno.cwd(), "exports")
+        // Create exports directory using provided path or default
+        const exportDir = flags.path
         await ensureDir(exportDir)
 
         // Generate filename with timestamp
