@@ -28,111 +28,32 @@ Please ensure all commands are compatible with this environment.
 `
 
 export const PLANNER_SYSTEM_PROMPT = `
-You prepare plans for an agentic system. 
-You will receive the user request, current system information in their respective tags. 
-Use this information to create a step by step plan for the agent to follow.
-Evaluate the user's request, if this is a simple request like a greeting, requesting information or advice which can be done without any tools simply respond with 'Reply to the user.'.
-However for anything more complex. Reflect on system information to create a step by step plan that agent can follow.
-You should respond with detailed JSON plan having the following shape: 
+Think step by step and prepare a plan for an agent running on CLI, 
+you will pass the generated plan to the agent and it will execute it according to the steps you will give them. 
+
+Make sure your steps will fulfill the user request,
+user's requests and current system information will be provided to you in their respective tags. 
+
+The agent will have access to some tools, including bash and file system access, 
+additionally there will be some other tools, whose names will be provided to you in  <Tools> tag.
+
+Evaluate the user's request; if this is a simple request like a greeting, requesting information, or advice which can be done without any tools, simply respond with '[{step:0,action:'Reply to the user'}]'
+However, for anything more complex, reflect on system information to create a step-by-step plan that the agent can follow.
+Make sure each step can be executed independently of each other, but still have the ability to build on the previous steps.
+Also, make sure each step can respect the system information, and the user request.
+You should respond with a detailed JSON plan having the following shape: 
 [{step:1,action:'Action to be taken to achieve the goal'},"..."]
-ONLY Respond in JSON without any codefences or any other details
+ONLY Respond in JSON without any codefences or any other details. 
 `
-export const COMBINED_SYSTEM_PROMPT = `
-You are a versatile assistant with full system access.
-You are currently operating in ${Deno.cwd()} directory.
 
-You have access to following tools and capabilities:
-
-- BASH_TOOL:
-    - Name: "bash"
-    - Description: Execute shell commands
-    - Arguments:
-        - command: string (required) - The shell command to execute
-        - restart: boolean (optional) - Restart shell session if true
-        - Example: {command: "ls -la", restart: false}
-
-- EDITOR_TOOL:
-    - Name: "str_replace_editor"
-    - Description: File manipulation operations
-    - Commands:
-        - view:
-            - path: string (required)
-        - create:
-            -path: string (required)
-            - file_text: string (required)
-        - str_replace:
-            - path: string (required)
-            - old_str: string (required)
-            - new_str: string (required)
-        - insert:
-            - path: string (required)
-            - insert_line: number (required)
-            - new_str: string (required)
-- MEMORY_TOOLS:
-    - Name: "add_memory"
-    - Arguments: {content: string}
-    - Name: "get_memories"
-    - Arguments: none
-    - Name: "clear_memories"
-    - Arguments: none
-- CLIPBOARD_TOOLS:
-    - Name: "read_clipboard"
-    - Arguments: none
-${isJinaAvailable() ? `
-- JINA_TOOLS:
-    - Name: "readPage"
-    - Arguments: {url: string}
-    - Name: "search"
-    - Arguments: {searchTerm: string}
-    - Name: "searchGrounding"
-    - Arguments: {searchTerm: string}
-` : ''}
-
-
-
-Your capabilities include:
-
-1. File System Access:
-   - Full access to read and edit files
-   - All paths should be relative to current directory
-   - Use './' or '.' for current directory references
-   - Use relative paths for subdirectories
-
-2. Command Execution:
-   - Can execute shell commands in the current environment
-   - Ensure commands are compatible with the system
-   - Can navigate and manipulate the file system
-
-3. Memory Management:
-   - Access to system memory via /root/memory.json
-   - Can add, retrieve, and clear memories
-   - Use memory for context persistence
-
-4. Clipboard Access:
-    - Can read content from the system clipboard
-${isJinaAvailable() ? `
-5. Jina API Integration:
-    - Can read and parse content from a URL
-    - Can search content using Jina Search API
-    - Can search with grounding using Jina Grounding API
-` : ''}
-
-Before taking any action, follow these steps:
-
-
-Some tips:
-- For any non file operations, use the BASH_TOOL
-- If you need to locate the file, use BASH_TOOL to find the file path
-- EDITOR_TOOL works best when you have the exact file path to work with.
-- Best way to write or update a file is to use EDITOR_TOOL.
-- If an information is needed to be stored for future reference, use MEMORY_TOOLS.
-- If you need to read content from a URL, search online use JINA_TOOLS.
-`
 
 export const SYSTEM_PROMPT_TEMPLATE = `
 You are a versatile assistant with full system access.
 You are currently operating in \${Deno.cwd()} directory.
 
+System Information:
+\${systemInfo}
+
 You have access to following tools and capabilities:
 
 - BASH_TOOL:
@@ -160,6 +81,7 @@ You have access to following tools and capabilities:
             - path: string (required)
             - insert_line: number (required)
             - new_str: string (required)
+
 - MEMORY_TOOLS:
     - Name: "add_memory"
     - Arguments: {content: string}
@@ -167,51 +89,58 @@ You have access to following tools and capabilities:
     - Arguments: none
     - Name: "clear_memories"
     - Arguments: none
+
 - CLIPBOARD_TOOLS:
     - Name: "read_clipboard"
     - Arguments: none
 
 \${additionalTools}
 
-Your capabilities include:
 
-1. File System Access:
-   - Full access to read and edit files
-   - All paths should be relative to current directory
-   - Use './' or '.' for current directory references
-   - Use relative paths for subdirectories
-
-2. Command Execution:
-   - Can execute shell commands in the current environment
-   - Ensure commands are compatible with the system
-   - Can navigate and manipulate the file system
-
-3. Memory Management:
-   - Access to system memory via /root/memory.json
-   - Can add, retrieve, and clear memories
-   - Use memory for context persistence
-
-4. Clipboard Access:
-    - Can read content from the system clipboard
-\${isJinaAvailable() ? \`
-5. Jina API Integration:
-    - Can read and parse content from a URL
-    - Can search content using Jina Search API
-    - Can search with grounding using Jina Grounding API
-\` : ''}
-
-Before taking any action, follow these steps:
-
-Some tips:
-- For any non file operations, use the BASH_TOOL
-- If you need to locate the file, use BASH_TOOL to find the file path
-- EDITOR_TOOL works best when you have the exact file path to work with.
-- Best way to write or update a file is to use EDITOR_TOOL.
-- If an information is needed to be stored for future reference, use MEMORY_TOOLS.
-- If you need to read content from a URL, search online use JINA_TOOLS.
 
 \${userContext}
 \${additionalInstructions ?? ''}
+
+
+
+Follow these rules:
+
+1. File and Directory Operations:
+   - Use BASH_TOOL for all file/directory operations
+   - Default command structure:
+     \`\`\`
+     For files: {command: "rg [options] 'pattern' [file-pattern]"}
+     For dirs: {command: "tree . [options] [conditions]"}
+\`\`\`
+
+2. Content Search with ripgrep (rg):
+   - Always include these base options:
+     \`\`\`
+--type - not=lock     # Exclude lockfiles
+--hidden           # Include hidden files
+    - l                 # Only show file names
+        \`\`\`
+   - Common usage patterns:
+     \`\`\`
+Search in YAML: {command: "rg --type-not=lock --hidden -t yaml 'pattern'"}
+     Specific files: {command: "rg --type-not=lock --hidden -g 'serverless.yml' 'pattern'"}
+     Multiple patterns: {command: "rg --type-not=lock --hidden -e 'pattern1' -e 'pattern2'"}
+\`\`\`
+
+
+3. File Editing:
+   - Use EDITOR_TOOL for all file modifications
+   - Always provide exact file paths (use BASH_TOOL with tree/rg first if needed)
+
+4. Data Management:
+   - Use MEMORY_TOOLS when something you find will be needed later
+   - Use CLIPBOARD_TOOLS only when user tells you to read from clipboard
+
+5. External Resources:
+   - Use JINA_TOOLS for web content and online searches
+
+Note: When chaining operations, use separate BASH_TOOL commands and store results in MEMORY_TOOLS if needed.
+
 `
 
 export const API_CONFIG = {
@@ -321,7 +250,8 @@ interface SchemaProperty {
 
 export function getSystemContext(
     additionalTools: Anthropic.Beta.Messages.BetaTool[] = [],
-    additionalInstructions?: string
+    systemInfo: string = '{}',
+    additionalInstructions?: string,
 ): string {
     const settings = loadUserSettings()
 
@@ -348,7 +278,9 @@ User Context:
 `
 
     return SYSTEM_PROMPT_TEMPLATE
+        .replace('${Deno.cwd()}', Deno.cwd())
         .replace('${additionalTools}', toolsString)
         .replace('${userContext}', userContext)
+        .replace('${systemInfo}', systemInfo)
         .replace('${additionalInstructions ?? \'\'}', additionalInstructions ?? '')
 }

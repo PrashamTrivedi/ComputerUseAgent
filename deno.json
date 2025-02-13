@@ -5,9 +5,10 @@
     "buildLocal": "deno compile --output build/ComputerUseAgent -A --unstable-ffi src/main.ts"
   },
   "imports": {
+    "@cliffy/prompt": "jsr:@cliffy/prompt@^1.0.0-rc.7",
     "@std/assert": "jsr:@std/assert@1",
     "@db/sqlite": "jsr:@db/sqlite",
     "table": "jsr:@sauber/table",
-    "anthropic": "npm:@anthropic-ai/sdk"
+    "anthropic": "npm:@anthropic-ai/sdk",
   }
 }

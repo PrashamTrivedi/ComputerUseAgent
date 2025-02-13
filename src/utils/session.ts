@@ -96,8 +96,9 @@ export class BaseSession {
 
   protected getSystemPrompt(
     additionalTools: Anthropic.Beta.Messages.BetaTool[] = [],
+    systemInfo?: string,
     additionalInstructions?: string
   ): string {
-    return getSystemContext(additionalTools, additionalInstructions)
+    return getSystemContext(additionalTools, systemInfo, additionalInstructions)
   }
 }

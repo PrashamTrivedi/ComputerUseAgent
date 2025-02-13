@@ -38,12 +38,11 @@ export class BashHandlers {
             log.info(`Executing command: ${command}`)
 
             try {
-                // First attempt: Try running the command directly
-                const directProcess = new Deno.Command(command.split(" ")[0], {
-                    args: command.split(" ").slice(1),
-
+                // First attempt: Try running the command with bash -c
+                const directProcess = new Deno.Command("bash", {
+                    args: ["-c", command],
+                    env: this.environment,
                     stdout: "piped",
-
                     stderr: "piped",
                 })
                 const result = await directProcess.output()

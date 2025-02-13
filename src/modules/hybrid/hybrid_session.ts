@@ -5,35 +5,38 @@ import {ToolHandler} from "../../utils/tool_handler.ts"
 import {getConfigFileLocation} from "../../config/settings.ts"
 import {ToolConfigManager} from "../../config/tool_config.ts"
 import generatePlan from "../planner/planner.ts"
-import {ToolCall} from "../../types/interfaces.ts"
 import Anthropic from "anthropic"
 
 export class HybridSession extends BaseSession {
     private toolHandler: ToolHandler
     private cachedSystemPrompt: string = ""
+    private systemInfo: string
 
     constructor(sessionId: string, noAgi = false) {
         super(sessionId)
         const configPath = getConfigFileLocation()
         const toolConfig = new ToolConfigManager().loadConfig(configPath)
         this.toolHandler = new ToolHandler(noAgi, toolConfig)
+
+        // Initialize system info
+        this.systemInfo = JSON.stringify({
+            os: Deno.build.os,
+            arch: Deno.build.arch,
+            isWsl: Deno.env.get("WSL_DISTRO_NAME") !== undefined,
+            shell: Deno.env.get("SHELL") || "Unknown",
+        })
     }
 
     async process(prompt: string): Promise<void> {
         try {
-            const systemInfo = {
-                os: Deno.build.os,
-                arch: Deno.build.arch,
-                isWsl: Deno.env.get("WSL_DISTRO_NAME") !== undefined,
-                shell: Deno.env.get("SHELL") || "Unknown",
-                cwd: Deno.cwd(),
-            }
-
-            // Cache the system prompt
-            this.cachedSystemPrompt = this.getSystemPrompt(this.toolHandler.getDynamicTools())
+            // Cache the system prompt with system info
+            this.cachedSystemPrompt = this.getSystemPrompt(
+                this.toolHandler.getDynamicTools(),
+                this.systemInfo
+            )
 
             // Generate execution plan
-            const plan = await generatePlan(JSON.stringify(systemInfo), this.toolHandler.getAllTools(), prompt)
+            const plan = await generatePlan(this.systemInfo, this.toolHandler.getAllTools(), prompt, this.sessionId)
             log.info(`Plan: ${JSON.stringify(plan)}`)
 
             // Execute each step in the plan
