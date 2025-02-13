@@ -11,10 +11,15 @@ bash command execution capabilities using Claude 3 API.
   - Editor mode for AI-assisted text file manipulation
   - Bash mode for intelligent command execution
   - Hybrid mode for combined capabilities
-- **Export Functionality**
-  - Prompt ID-based export system
+- **Enhanced Export System**:
+  - Prompt ID-based export functionality
   - Dedicated export paths
-  - Enhanced session logging
+  - Rich session data export
+  - Comprehensive session logging
+- **Improved User Management**:
+  - Streamlined settings management
+  - Enhanced session handling
+  - Efficient tool configuration
 - **Memory Management**
 - **Comprehensive Logging**
   - Text response content tracking

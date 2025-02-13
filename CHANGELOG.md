@@ -10,8 +10,8 @@
 
 ### Latest Changes (since v1.2)
 
-- b099c4f - Add export functionality and enhance tool handling
-- 1c9e7ac - Refactor user settings and session management
-- 5944766 - Refactor export functionality to use prompt ID
-- 1ad1bef - Add export functionality and enhance session logging
-- d534778 - Added issue management action
+- Added new export functionality with prompt ID-based system
+- Enhanced session logging capabilities
+- Refactored user settings management for improved efficiency
+- Enhanced tool handling system
+- Improved session management

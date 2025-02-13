@@ -6,4 +6,7 @@
     //     }
     // ],
     "github.copilot.editor.enableCodeActions": true,
+    "chat.promptFiles": {
+        "prompts": true
+    }
 }
