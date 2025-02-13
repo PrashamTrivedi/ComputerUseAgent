@@ -14,5 +14,23 @@
             "file": "CONVENTIONS.md"
         }
     ],
+    "github.copilot.chat.commitMessageGeneration.instructions": [
+        {
+            "text": "Follow Conventional Commits specification v1.0.0"
+        },
+        {
+            "text": "Use imperative mood: 'Add' not 'Added'"
+        },
+        {
+            "text": "Limit header to 72 characters"
+        },
+        {
+            "text": "Allowed types: feat, fix, chore, docs, style, refactor, test"
+        },
+        {
+            "text": "Example: 'chore(deps): update security patches'"
+        }
+    ],
     "github.copilot.chat.codeGeneration.useInstructionFiles": true,
+    "github.copilot.chat.commitMessageGeneration.enabled": true
 }

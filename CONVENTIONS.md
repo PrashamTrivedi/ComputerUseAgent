@@ -86,6 +86,7 @@ export async function handleNewCommand(args: string[]) {
 - Keep system prompts in `constants.ts`
 - Messages must maintain conversation context
 - Tool calls should be processed sequentially
+- Follow Anthropic tool calling conventions defined in [`prompts/tool_calling_anthropic.md`](prompts/tool_calling_anthropic.md)
 
 ## Best Practices
 
