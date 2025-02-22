@@ -407,7 +407,6 @@
   },
   "workspace": {
     "dependencies": [
-      "jsr:@cliffy/prompt@*",
       "jsr:@cliffy/prompt@^1.0.0-rc.7",
       "jsr:@db/sqlite@*",
       "jsr:@sauber/table@*",
