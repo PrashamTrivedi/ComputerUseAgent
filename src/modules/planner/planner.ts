@@ -3,6 +3,7 @@ import {Anthropic} from "anthropic"
 import {API_CONFIG, PLANNER_SYSTEM_PROMPT} from "../../config/constants.ts"
 import {Select, Input, Confirm} from "@cliffy/prompt"
 import {PromptDatabase} from "../db/database.ts"
+import {blue, green, yellow, bold, dim} from "jsr:@std/fmt/colors"
 
 export default async function generatePlan(
     systemInfo: string,
@@ -19,9 +20,15 @@ export default async function generatePlan(
             <Tools>${JSON.stringify(tools.map(tool => tool.name))}</Tools>
             <UserRequest>${userPrompt}</UserRequest>`
 
+    console.log(blue("\n🧠 Generating plan..."))
+
     const response = await claude.messages.create({
-        model: API_CONFIG.MODEL,
-        max_tokens: API_CONFIG.MAX_TOKENS,
+        model: API_CONFIG.REASONING_MODEL,
+        max_tokens: API_CONFIG.MAX_TOKENS_WHEN_THINKING,
+        thinking: {
+            type: "enabled",
+            budget_tokens: API_CONFIG.MIN_THINKING_TOKENS
+        },
         messages: [{
             role: "user",
             content: promptContent,
@@ -30,9 +37,27 @@ export default async function generatePlan(
     })
 
     try {
+        // Display the thinking process if available
+        const thinkingBlock = response.content.find(block => block.type === "thinking")
+        if (thinkingBlock && 'thinking' in thinkingBlock) {
+            console.log(bold("\n🔍 Planning Thought Process:"))
+            console.log("═".repeat(80))
+
+            // Format thinking text with proper indentation and line breaks
+            const formattedThinking = thinkingBlock.thinking
+                .split('\n')
+                .map(line => dim(green(`  ${line}`)))
+                .join('\n')
+
+            console.log(formattedThinking)
+            console.log("═".repeat(80))
+        }
+
         const textBlock = response.content.find(block => block.type === "text")
         const planJson = textBlock ? JSON.parse(textBlock.text) : {}
         const initialPlan = {planSteps: planJson}
+
+        console.log(yellow("\n✅ Plan generated successfully!"))
 
         // Log the planner interaction with sessionId
         await db.savePrompt({

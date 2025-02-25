@@ -20,8 +20,7 @@ async function jinaFetch(endpoint: string, url: string): Promise<string> {
     }
 
     let response = await fetch(jinaApiEndpoint, {headers})
-    log.info({headers, success: response.ok, code: response.status})
-
+    
     // If we get a 403, retry once with X-No-Cache header
     if (response.status === 403) {
         log.info('Got 403, retrying with X-No-Cache header')
@@ -31,14 +30,12 @@ async function jinaFetch(endpoint: string, url: string): Promise<string> {
                 'X-No-Cache': 'true'
             }
         })
-        console.log({headers})
     }
 
     if (!response.ok) {
         throw new Error(`Jina API error: ${response.statusText}`)
     }
     log.info(`fetched ${jinaApiEndpoint}`)
-    log.info({headers, success: response.ok, code: response.status})
 
     return await response.text()
 }
