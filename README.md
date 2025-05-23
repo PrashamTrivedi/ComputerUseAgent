@@ -3,7 +3,7 @@
 [![Nightly Build](https://github.com/yourusername/ComputerUseAgent/actions/workflows/nightly.yml/badge.svg)](https://github.com/yourusername/ComputerUseAgent/actions/workflows/nightly.yml)
 
 A sophisticated Deno-based CLI tool that provides AI-powered file editing and
-bash command execution capabilities using Claude 3 API.
+bash command execution capabilities using Claude API with configurable model selection.
 
 ## Features
 
@@ -147,14 +147,8 @@ Key configuration files:
 
 ## Documentation
 
-- See [CHANGELOG.md](CHANGELOG.md) for detailed version history and latest
-  changes
-- Key configuration files:
-  - [`src/config/constants.ts`](src/config/constants.ts): System-wide constants
-    and API settings
-  - [`src/config/logging.ts`](src/config/logging.ts): Logging configuration
-  - [`src/config/tool_config.ts`](src/config/tool_config.ts): Tool configuration
-  - [`deno.json`](deno.json): Deno project configuration
+- See [CHANGELOG.md](CHANGELOG.md) for detailed version history and latest changes
+- [CONVENTIONS.md](CONVENTIONS.md) for development patterns and best practices
 
 ## Development
 
