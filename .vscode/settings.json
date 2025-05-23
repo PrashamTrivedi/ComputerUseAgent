@@ -6,9 +6,7 @@
     //     }
     // ],
     "github.copilot.editor.enableCodeActions": true,
-    "chat.promptFiles": {
-        "prompts/": true
-    },
+    "chat.promptFiles": true,
     "github.copilot.chat.codeGeneration.instructions": [
         {
             "file": "CONVENTIONS.md"
