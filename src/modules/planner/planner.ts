@@ -1,6 +1,6 @@
 import {Plan, PlanStep} from "../../types/interfaces.ts"
 import {Anthropic} from "anthropic"
-import {API_CONFIG, PLANNER_SYSTEM_PROMPT} from "../../config/constants.ts"
+import {getAPIConfig, PLANNER_SYSTEM_PROMPT} from "../../config/constants.ts"
 import {Select, Input, Confirm} from "@cliffy/prompt"
 import {PromptDatabase} from "../db/database.ts"
 import {blue, green, yellow, bold, dim} from "jsr:@std/fmt/colors"
@@ -22,19 +22,26 @@ export default async function generatePlan(
 
     console.log(blue("\n🧠 Generating plan..."))
 
-    const response = await claude.messages.create({
-        model: API_CONFIG.REASONING_MODEL,
-        max_tokens: API_CONFIG.MAX_TOKENS_WHEN_THINKING,
-        thinking: {
-            type: "enabled",
-            budget_tokens: API_CONFIG.MIN_THINKING_TOKENS
-        },
+    const apiConfig = getAPIConfig()
+    const messageOptions: any = {
+        model: apiConfig.REASONING_MODEL,
+        max_tokens: apiConfig.MAX_TOKENS_WHEN_THINKING,
         messages: [{
             role: "user",
             content: promptContent,
         }],
         system: PLANNER_SYSTEM_PROMPT,
-    })
+    }
+    
+    // Only add thinking if supported by the model
+    if (apiConfig.USE_THINKING && apiConfig.MIN_THINKING_TOKENS > 0) {
+        messageOptions.thinking = {
+            type: "enabled",
+            budget_tokens: apiConfig.MIN_THINKING_TOKENS
+        }
+    }
+    
+    const response = await claude.messages.create(messageOptions)
 
     try {
         // Display the thinking process if available
@@ -65,7 +72,7 @@ export default async function generatePlan(
             prompt: promptContent,
             result: textBlock?.text || "",
             tokens_used: response.usage?.input_tokens || 0,
-            cost: calculateCost(response.usage?.input_tokens || 0, response.usage?.output_tokens || 0),
+            cost: calculateCost(response.usage?.input_tokens || 0, response.usage?.output_tokens || 0, apiConfig.REASONING_MODEL),
             session_id: sessionId
         })
 
@@ -77,12 +84,27 @@ export default async function generatePlan(
     }
 }
 
-function calculateCost(inputTokens: number, outputTokens: number): number {
-    const costPerMillionInputTokens = 3.0
-    const costPerMillionOutputTokens = 15.0
+function calculateCost(inputTokens: number, outputTokens: number, modelName: string): number {
+    const MODEL_PRICING = {
+        "claude-3-5-sonnet-20241022": { input: 3.0, output: 15.0 },
+        "claude-3-7-sonnet-20250219": { input: 3.0, output: 15.0 },
+        "claude-sonnet-4-20250514": { input: 3.0, output: 15.0 },
+        "claude-opus-4-20250514": { input: 15.0, output: 75.0 },
+        "claude-3-5-haiku-20241022": { input: 1.0, output: 5.0 },
+    } as const
+    
+    const pricing = MODEL_PRICING[modelName as keyof typeof MODEL_PRICING]
+    if (!pricing) {
+        // Fallback to 3.5 Sonnet pricing
+        const costPerMillionInputTokens = 3.0
+        const costPerMillionOutputTokens = 15.0
+        const inputCost = (inputTokens / 1_000_000) * costPerMillionInputTokens
+        const outputCost = (outputTokens / 1_000_000) * costPerMillionOutputTokens
+        return inputCost + outputCost
+    }
 
-    const inputCost = (inputTokens / 1_000_000) * costPerMillionInputTokens
-    const outputCost = (outputTokens / 1_000_000) * costPerMillionOutputTokens
+    const inputCost = (inputTokens / 1_000_000) * pricing.input
+    const outputCost = (outputTokens / 1_000_000) * pricing.output
 
     return inputCost + outputCost
 }

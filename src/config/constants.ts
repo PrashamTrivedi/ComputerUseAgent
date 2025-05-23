@@ -1,7 +1,7 @@
 import {join} from "jsr:@std/path"
 import Anthropic from "anthropic"
 import {homedir} from "node:os"
-import {isJinaAvailable, loadUserSettings} from "./settings.ts"
+import {isJinaAvailable, loadUserSettings, getSelectedModel, getModelMap} from "./settings.ts"
 
 export const EDITOR_DIR = join(homedir(), ".ComputerUseAgent", "editor_dir")
 export const SESSIONS_DIR = join(homedir(), ".ComputerUseAgent", "sessions")
@@ -143,15 +143,40 @@ Note: When chaining operations, use separate BASH_TOOL commands and store result
 
 `
 
-export const API_CONFIG = {
-    MODEL: "claude-3-5-sonnet-20241022",
-    REASONING_MODEL: "claude-3-7-sonnet-20250219",
-    INTENT_MODEL: "claude-3-5-haiku-20241022",
-    MAX_TOKENS: 8192,
-    MIN_THINKING_TOKENS: 1024,
-    MAX_TOKENS_WHEN_THINKING: 20000,
-    MAX_INTENT_TOKENS: 20,
+function getReasoningModel(mainModel: string): string {
+    const modelMap = getModelMap()
+
+    if (mainModel === modelMap["3.5-sonnet"]) {
+        return modelMap["3.7-sonnet"]
+    } else {
+        return mainModel
+    }
+
 }
+
+function shouldUseThinking(mainModel: string): boolean {
+    const modelMap = getModelMap()
+    return mainModel !== modelMap["3.5-sonnet"]
+}
+
+export function getAPIConfig() {
+    const selectedModel = getSelectedModel()
+    const reasoningModel = getReasoningModel(selectedModel)
+    const useThinking = shouldUseThinking(selectedModel)
+
+    return {
+        MODEL: selectedModel,
+        REASONING_MODEL: reasoningModel,
+        INTENT_MODEL: "claude-3-5-haiku-20241022",
+        USE_THINKING: useThinking,
+        MAX_TOKENS: 8192,
+        MIN_THINKING_TOKENS: useThinking ? 1024 : 0,
+        MAX_TOKENS_WHEN_THINKING: useThinking ? 20000 : 8192,
+        MAX_INTENT_TOKENS: 20,
+    }
+}
+
+export const API_CONFIG = getAPIConfig()
 
 export const MEMORY_TOOLS: Anthropic.Beta.BetaTool[] = [
     {

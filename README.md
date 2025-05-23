@@ -11,6 +11,11 @@ bash command execution capabilities using Claude 3 API.
   - Editor mode for AI-assisted text file manipulation
   - Bash mode for intelligent command execution
   - Hybrid mode for combined capabilities
+- **Configurable AI Models**:
+  - Support for multiple Claude models (3.5 Sonnet, 3.7 Sonnet, 4 Sonnet, 4 Opus)
+  - Smart planner model selection based on main model choice
+  - Model-specific cost tracking and pricing
+  - Easy model switching via settings commands
 - **Enhanced Export System**:
   - Prompt ID-based export functionality
   - Dedicated export paths
@@ -24,8 +29,11 @@ bash command execution capabilities using Claude 3 API.
 - **Comprehensive Logging**
   - Text response content tracking
   - Debug logging for history entries
-  - Token usage tracking
-- **Cost Calculation**
+  - Multi-model token usage tracking
+- **Advanced Cost Calculation**
+  - Model-specific pricing
+  - Per-model cost breakdown
+  - Cost warnings for expensive models
 - **History Management** with database integration
 - **Clipboard Management** with cross-platform support
 - **Tool Configuration Management**
@@ -89,6 +97,32 @@ deno run -A src/main.ts --mode=bash --no-agi "your command"
 ./build/ComputerUseAgent --mode=bash "your command"
 ./build/ComputerUseAgent --export "prompt-id" # Export session data
 ```
+
+### Model Configuration
+
+Configure which Claude model to use for AI operations:
+
+```sh
+# Set model to Claude 4 Sonnet
+deno run -A src/main.ts settings --set-model "4-sonnet"
+
+# List available models
+deno run -A src/main.ts settings --list-models
+
+# View current settings including selected model
+deno run -A src/main.ts settings --list
+```
+
+**Available Models:**
+- `3.5-sonnet` - Claude 3.5 Sonnet (Default, most cost-effective)
+- `3.7-sonnet` - Claude 3.7 Sonnet (Enhanced reasoning capabilities)
+- `4-sonnet` - Claude 4 Sonnet (Latest generation)
+- `4-opus` - Claude 4 Opus (Most capable, higher cost)
+
+**Smart Features:**
+- Automatic planner model selection based on your chosen model
+- Model-specific cost tracking and warnings
+- Thinking capabilities automatically enabled for supported models
 
 ## Project Structure
 

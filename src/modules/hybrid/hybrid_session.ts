@@ -1,5 +1,5 @@
 import {BaseSession} from "../../utils/session.ts"
-import {API_CONFIG} from "../../config/constants.ts"
+import {getAPIConfig} from "../../config/constants.ts"
 import {log} from "../../config/logging.ts"
 import {ToolHandler} from "../../utils/tool_handler.ts"
 import {getConfigFileLocation} from "../../config/settings.ts"
@@ -54,9 +54,10 @@ export class HybridSession extends BaseSession {
 
                 try {
                     while (true) {
+                        const apiConfig = getAPIConfig()
                         const response = await this.client.beta.messages.create({
-                            model: API_CONFIG.MODEL,
-                            max_tokens: API_CONFIG.MAX_TOKENS,
+                            model: apiConfig.MODEL,
+                            max_tokens: apiConfig.MAX_TOKENS,
                             messages: this.messages,
                             tools: [
                                 {type: "bash_20241022", name: "bash"},
@@ -69,7 +70,7 @@ export class HybridSession extends BaseSession {
 
                         const inputTokens = response.usage?.input_tokens ?? 0
                         const outputTokens = response.usage?.output_tokens ?? 0
-                        this.logger.updateTokenUsage(inputTokens, outputTokens)
+                        this.logger.updateTokenUsage(inputTokens, outputTokens, apiConfig.MODEL)
 
                         const responseContent = response.content.map((block) =>
                             block.type === "text" ? {type: "text", text: block.text} : block

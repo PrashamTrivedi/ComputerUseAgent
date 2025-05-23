@@ -44,6 +44,7 @@ export interface UserSettings {
   jinaApiKey?: string
   toolConfigPath: string
   editorCommand: string
+  model?: string
 }
 
 interface ToolInputConfig {
