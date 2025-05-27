@@ -15,6 +15,8 @@ bash command execution capabilities using Claude API with configurable model sel
   - Support for multiple Claude models (3.5 Sonnet, 3.7 Sonnet, 4 Sonnet, 4 Opus)
   - Smart planner model selection based on main model choice
   - Model-specific cost tracking and pricing
+  - Dynamic tool version selection based on selected model
+  - Automatic beta header configuration for optimal compatibility
   - Easy model switching via settings commands
 - **Enhanced Export System**:
   - Prompt ID-based export functionality
@@ -123,6 +125,8 @@ deno run -A src/main.ts settings --list
 - Automatic planner model selection based on your chosen model
 - Model-specific cost tracking and warnings
 - Thinking capabilities automatically enabled for supported models
+- Dynamic tool version selection ensuring compatibility with each model
+- Automatic beta header configuration for optimal API compatibility
 
 ## Project Structure
 

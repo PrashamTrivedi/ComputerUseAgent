@@ -32,6 +32,20 @@
 ### Fixed
 - Jina API retry logic for 403 responses with X-No-Cache header
 
-### Latest Changes (since v1.3)
+## [v1.3.1] - 2025-01-27
 
-No new changes yet.
+### Added
+- **Model-Specific Tool Configurations**: Dynamic tool version selection based on Claude model
+  - Automatic selection of appropriate bash and text editor tool versions for each model
+  - Model-specific beta headers (computer-use-2024-10-22 vs computer-use-2025-01-24)
+  - Support for latest tool versions (bash_20250124, text_editor_20250124) for newer models
+  - Backward compatibility maintained for Claude 3.5 Sonnet with legacy tool versions
+
+### Changed
+- Enhanced HybridSession to use dynamic tool configuration instead of hardcoded versions
+- Updated API client to select appropriate beta headers based on selected model
+
+### Technical Details
+- Added ModelToolConfig interface and mapping in constants.ts
+- Implemented getModelToolConfig() helper function for tool version selection
+- Updated tool type assertions to support multiple bash and text editor versions

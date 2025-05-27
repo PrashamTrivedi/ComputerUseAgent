@@ -1,5 +1,5 @@
 import {BaseSession} from "../../utils/session.ts"
-import {getAPIConfig} from "../../config/constants.ts"
+import {getAPIConfig, getModelToolConfig} from "../../config/constants.ts"
 import {log} from "../../config/logging.ts"
 import {ToolHandler} from "../../utils/tool_handler.ts"
 import {getConfigFileLocation} from "../../config/settings.ts"
@@ -55,17 +55,18 @@ export class HybridSession extends BaseSession {
                 try {
                     while (true) {
                         const apiConfig = getAPIConfig()
+                        const toolConfig = getModelToolConfig(apiConfig.MODEL)
                         const response = await this.client.beta.messages.create({
                             model: apiConfig.MODEL,
                             max_tokens: apiConfig.MAX_TOKENS,
                             messages: this.messages,
                             tools: [
-                                {type: "bash_20241022", name: "bash"},
-                                {type: "text_editor_20241022", name: "str_replace_editor"},
+                                {type: toolConfig.bashTool as "bash_20241022" | "bash_20250124", name: "bash"},
+                                {type: toolConfig.textEditorTool as "text_editor_20241022" | "text_editor_20250124", name: "str_replace_editor"},
                                 ...tools
                             ],
                             system: this.cachedSystemPrompt,
-                            betas: ["computer-use-2024-10-22"],
+                            betas: [toolConfig.betaHeader],
                         })
 
                         const inputTokens = response.usage?.input_tokens ?? 0

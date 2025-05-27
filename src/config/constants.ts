@@ -3,6 +3,44 @@ import Anthropic from "anthropic"
 import {homedir} from "node:os"
 import {isJinaAvailable, loadUserSettings, getSelectedModel, getModelMap} from "./settings.ts"
 
+interface ModelToolConfig {
+    textEditorTool: string;
+    bashTool: string;
+    betaHeader: string;
+    supportsThinking: boolean;
+}
+
+const MODEL_TOOL_CONFIGS: Record<string, ModelToolConfig> = {
+    'claude-3-5-sonnet-20241022': {
+        textEditorTool: 'text_editor_20241022',
+        bashTool: 'bash_20241022',
+        betaHeader: 'computer-use-2024-10-22',
+        supportsThinking: false
+    },
+    'claude-3-7-sonnet-20250219': {
+        textEditorTool: 'text_editor_20250124',
+        bashTool: 'bash_20250124',
+        betaHeader: 'computer-use-2025-01-24',
+        supportsThinking: true
+    },
+    'claude-sonnet-4-20250514': {
+        textEditorTool: 'text_editor_20250124',
+        bashTool: 'bash_20250124',
+        betaHeader: 'computer-use-2025-01-24',
+        supportsThinking: true
+    },
+    'claude-opus-4-20250514': {
+        textEditorTool: 'text_editor_20250124',
+        bashTool: 'bash_20250124',
+        betaHeader: 'computer-use-2025-01-24',
+        supportsThinking: true
+    }
+};
+
+export function getModelToolConfig(model: string): ModelToolConfig {
+    return MODEL_TOOL_CONFIGS[model] || MODEL_TOOL_CONFIGS['claude-3-5-sonnet-20241022'];
+}
+
 export const EDITOR_DIR = join(homedir(), ".ComputerUseAgent", "editor_dir")
 export const SESSIONS_DIR = join(homedir(), ".ComputerUseAgent", "sessions")
 export const LOGS_DIR = join(homedir(), ".ComputerUseAgent", "logs")
